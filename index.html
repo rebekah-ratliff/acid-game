@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rave Maze</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Koulen&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0C0C0E;
+            --maze-neon: #1B00FF;
+            --maze-dark: #0A0094;
+            --ui-bg: #111115;
+            --ui-panel: #1A1A20;
+            --text-main: #E0E0E0;
+            --msg-player: #2C2C3A;
+            --msg-shumsky: #1B00FF;
+            --beat-scale: 1;
+            --chromatic-offset: 0px;
+            --trip-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Layout */
+        #app-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        #game-section {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: #000;
+            overflow: hidden;
+        }
+
+        /* Full Bleed Container */
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            /* Beat reaction effects applied here */
+            transform: scale(var(--beat-scale));
+            filter: drop-shadow(var(--chromatic-offset) 0 0 rgba(255, 0, 0, 0.5)) 
+                    drop-shadow(calc(var(--chromatic-offset) * -1) 0 0 rgba(0, 255, 255, 0.5));
+            transition: transform 0.05s ease-out, filter 0.05s ease-out;
+            box-shadow: 0 0 50px rgba(10, 0, 148, 0.2) inset;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        /* UI Overlays */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(12, 12, 14, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            backdrop-filter: blur(4px);
+        }
+
+        h1, h2, .koulen {
+            font-family: 'Koulen', cursive;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: 4rem;
+            color: var(--maze-neon);
+            text-shadow: 0 0 20px var(--maze-dark);
+            margin-bottom: 1rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        button {
+            background: transparent;
+            border: 2px solid var(--maze-neon);
+            color: var(--maze-neon);
+            font-family: 'Koulen', cursive;
+            font-size: 1.5rem;
+            padding: 0.5rem 2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(27, 0, 255, 0.2), inset 0 0 10px rgba(27, 0, 255, 0.2);
+        }
+
+        button:hover {
+            background: var(--maze-neon);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(27, 0, 255, 0.6), inset 0 0 20px rgba(27, 0, 255, 0.6);
+        }
+
+        /* Update mute button location to avoid overlapping the new logo */
+        #btn-mute {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            top: auto;
+            z-index: 20;
+            font-size: 1rem;
+            padding: 0.2rem 0.8rem;
+            background: rgba(12, 12, 14, 0.8);
+            border-width: 1px;
+        }
+
+        /* Logo overlay styling - Moved to Bottom Left */
+        #game-logo {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            top: auto;
+            right: auto;
+            max-width: 65px;
+            max-height: 40px;
+            width: auto;
+            height: auto;
+            z-index: 15;
+            opacity: 0.6;
+            filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
+            pointer-events: none; /* prevents blocking clicks */
+        }
+
+        /* Phone UI Panel */
+        #phone-ui {
+            width: 360px;
+            min-width: 360px;
+            background-color: var(--ui-bg);
+            border-left: 1px solid var(--maze-dark);
+            display: flex;
+            flex-direction: column;
+            z-index: 5;
+            position: relative;
+        }
+
+        /* Native Phone Chrome (Top Row) */
+        #phone-chrome {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0.8rem;
+            background-color: var(--ui-panel);
+            font-size: 0.65rem;
+            color: #777;
+            border-bottom: 1px solid #111;
+            letter-spacing: 0.5px;
+        }
+
+        .phone-chrome-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .now-playing {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 220px;
+        }
+
+        #phone-header {
+            padding: 0.8rem 1rem 1rem 1rem;
+            background-color: var(--ui-panel);
+            border-bottom: 1px solid #222;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+
+        /* New Trip Status Box UI - Moved to Game Area Overlay */
+        #trip-status-box {
+            position: absolute;
+            top: 20px;
+            left: 20px; /* Moved to top-left */
+            z-index: 20;
+            padding: 0.5rem 1.2rem;
+            background: rgba(12, 12, 14, 0.85);
+            border: 1px solid var(--maze-dark);
+            border-radius: 8px;
+            text-align: center;
+            min-width: 140px;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            pointer-events: none;
+        }
+
+        .status-label {
+            font-size: 0.6rem;
+            color: #888;
+            margin-bottom: 2px;
+            letter-spacing: 1.5px;
+        }
+
+        #contact-name {
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 0.2rem;
+        }
+
+        #trip-state {
+            font-size: 0.75rem;
+            color: var(--trip-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            /* Removed transition: color 1s; to allow smooth JS animation */
+        }
+
+        #messages-container {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            scroll-behavior: smooth;
+        }
+
+        /* Hide scrollbar for cleaner phone look */
+        #messages-container::-webkit-scrollbar { width: 6px; }
+        #messages-container::-webkit-scrollbar-track { background: transparent; }
+        #messages-container::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+        .msg {
+            max-width: 85%;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: translateY(10px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .msg.shumsky {
+            align-self: flex-start;
+            background-color: var(--msg-shumsky);
+            color: #fff;
+            border-bottom-left-radius: 2px;
+            box-shadow: 0 2px 10px rgba(27, 0, 255, 0.2);
+        }
+
+        .msg.player {
+            align-self: flex-end;
+            background-color: var(--msg-player);
+            color: #eee;
+            border-bottom-right-radius: 2px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 800px) {
+            #app-container {
+                flex-direction: column;
+            }
+            #phone-ui {
+                width: 100%;
+                min-width: 100%;
+                height: 35vh;
+                border-left: none;
+                border-top: 1px solid var(--maze-dark);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="game-section">
+        <div id="canvas-container">
+            <canvas id="game"></canvas>
+            
+            <button id="btn-mute" class="hidden">🔊 ON</button>
+
+            <!-- Trip Status overlay moved to game area -->
+            <div id="trip-status-box">
+                <div class="status-label">TRIP STATUS</div>
+                <div id="trip-state">Sound</div>
+            </div>
+
+            <!-- Overlays -->
+            <div id="start-screen" class="overlay">
+                <h1>Rave Maze</h1>
+                <p style="margin-bottom: 2rem; opacity: 0.7; text-align: center; max-width: 80%;">
+                    Arrow keys to move. Find tabs. Find the rave.
+                </p>
+                <button id="btn-start">Enter</button>
+            </div>
+
+            <div id="win-screen" class="overlay hidden">
+                <h1 style="font-size: 3rem; text-align: center;">ain't nothin' wrong<br>with that!</h1>
+                <button id="btn-replay" style="margin-top: 2rem;">Go again</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="phone-ui">
+        <!-- New Phone Utility Chrome -->
+        <div id="phone-chrome">
+            <div class="phone-chrome-item now-playing">
+                <span>▶</span> Nothing Wrong - Take Your Medicine
+            </div>
+            <div class="phone-chrome-item">
+                <span>84%</span> <span style="font-size: 0.8rem; line-height: 1;">🔋</span>
+            </div>
+        </div>
+
+        <div id="phone-header">
+            <div id="contact-name" class="koulen">Shumsky</div>
+        </div>
+        <div id="messages-container">
+            <!-- Messages injected here via JS -->
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * RAVE MAZE - Main Game Logic
+ * Architecture: Modules contained within a single IIFE to prevent global scope pollution
+ */
+(async function GameApp() {
+    
+    // ==========================================
+    // 1. CONFIGURATION & CONSTANTS
+    // ==========================================
+    const CONFIG = {
+        // Removed fixed tileSize and playerSpeed to allow dynamic scaling
+        audioBPM: 128,
+        targetTabs: 6,
+        totalTabsToSpawn: 10,
+        mapCols: 23, // Dynamic map width (must be odd number)
+        mapRows: 23, // Dynamic map height (must be odd number)
+        colors: {
+            bg: '#0C0C0E',
+            wall: '#1B00FF',
+            wallGlow: '#0A0094',
+            tab: '#FFEB3B',
+            ravePulsar: '#FF00FF'
+        },
+        tripStates: [
+            { text: "sound", color: "#ffffff", aura: "rgba(255,255,255,0)" },
+            { text: "coming up", color: "#a8ffb2", aura: "rgba(168,255,178,0.2)" },
+            { text: "buzzing", color: "#ffff66", aura: "rgba(255,255,102,0.3)" },
+            { text: "twisted", color: "#ff9933", aura: "rgba(255,153,51,0.4)" },
+            { text: "fully sideways", color: "#ff3399", aura: "rgba(255,51,153,0.5)" },
+            { text: "face melting", color: "#cc00ff", aura: "rgba(204,0,255,0.6)" },
+            { text: "cosmically lost", color: "#00ffff", aura: "rgba(0,255,255,0.8)" }
+        ]
+    };
+
+    // ==========================================
+    // MAZE GENERATION ALGORITHM
+    // ==========================================
+    // Generates a random, solvable maze using Recursive Backtracking
+    function generateMaze(width, height) {
+        // Ensure dimensions are odd for the carving algorithm to work properly
+        width = width % 2 === 0 ? width + 1 : width;
+        height = height % 2 === 0 ? height + 1 : height;
+
+        // Initialize grid with 1s (walls)
+        const map = Array.from({ length: height }, () => Array(width).fill(1));
+
+        // Directions for carving paths: [dx, dy]
+        const dirs = [
+            [0, -2], // Up
+            [2, 0],  // Right
+            [0, 2],  // Down
+            [-2, 0]  // Left
+        ];
+
+        function carve(x, y) {
+            map[y][x] = 0;
+            
+            // Randomize directions for organic winding paths
+            const shuffledDirs = dirs.sort(() => Math.random() - 0.5);
+
+            for (let [dx, dy] of shuffledDirs) {
+                const nx = x + dx;
+                const ny = y + dy;
+
+                // Check bounds and ensure we're carving into a solid wall block
+                if (nx > 0 && nx < width - 1 && ny > 0 && ny < height - 1 && map[ny][nx] === 1) {
+                    // Carve through the intermediate wall
+                    map[y + dy / 2][x + dx / 2] = 0;
+                    carve(nx, ny); // Recursively carve the next cell
+                }
+            }
+        }
+
+        // Start carving from top-left valid coordinate
+        carve(1, 1);
+
+        // Polish: Knock down some random walls to create loops (arcade feel vs strict dead-end maze)
+        const loopsToCreate = Math.floor((width * height) / 20);
+        for (let i = 0; i < loopsToCreate; i++) {
+            let rx = Math.floor(Math.random() * (width - 2)) + 1;
+            let ry = Math.floor(Math.random() * (height - 2)) + 1;
+            
+            if (map[ry][rx] === 1) {
+                // Only break a wall if it connects two parallel paths (horizontal or vertical)
+                if (map[ry][rx-1] === 0 && map[ry][rx+1] === 0 && map[ry-1][rx] === 1 && map[ry+1][rx] === 1) {
+                    map[ry][rx] = 0;
+                } else if (map[ry-1][rx] === 0 && map[ry+1][rx] === 0 && map[ry][rx-1] === 1 && map[ry][rx+1] === 1) {
+                    map[ry][rx] = 0;
+                }
+            }
+        }
+
+        return map;
+    }
+
+    // ==========================================
+    // 2. STATE MANAGEMENT
+    // ==========================================
+    const state = {
+        mapData: generateMaze(CONFIG.mapCols, CONFIG.mapRows), // Generate initial background maze
+        tileSize: 40, // Dynamic size calculated on resize
+        playerSpeed: 4, // Dynamic speed based on tile size
+        isRunning: false,
+        tabsCollected: 0,
+        tripLevel: 0,
+        camera: { x: 0, y: 0 },
+        entities: {
+            tabs: [],
+            rave: null
+        },
+        player: {
+            gridX: 1, gridY: 1, // Logic position
+            x: 0, y: 0,         // Pixel position
+            targetX: 0, targetY: 0,
+            direction: 'right',
+            isMoving: false
+        },
+        input: {
+            up: false, down: false, left: false, right: false
+        },
+        audio: {
+            context: null,
+            element: null,
+            beatPhase: 0, // 0.0 to 1.0 representing progression through a beat
+            isPlaying: false,
+            isMuted: false
+        },
+        loadedPlayerAssetPath: 'None' // Helper variable for debugging
+    };
+
+    // DOM Elements
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const canvasContainer = document.getElementById('canvas-container');
+    const startScreen = document.getElementById('start-screen');
+    const winScreen = document.getElementById('win-screen');
+    const msgContainer = document.getElementById('messages-container');
+    const tripStateEl = document.getElementById('trip-state');
+    const btnMute = document.getElementById('btn-mute');
+
+    // Assets
+    const assets = {
+        playerImg: null,
+        trackAudioUrl: null,
+        logoUrl: null // Add logo support
+    };
+
+    // ==========================================
+    // 3. ASSET LOADER (Robust Path Resolution)
+    // ==========================================
+    async function loadAssets() {
+        console.log("Loading assets...");
+
+        // Utility to try multiple paths sequentially
+        const tryPaths = async (paths, loaderFn, typeName) => {
+            for (let path of paths) {
+                try {
+                    const result = await loaderFn(path);
+                    console.log(`[OK] Successfully loaded ${typeName} from: ${path}`);
+                    
+                    // HELPER: Track the successfully loaded asset path for easier debugging
+                    if (typeName === "Player Sprite") {
+                        state.loadedPlayerAssetPath = path;
+                        console.log(`[DEBUG] ---> Player is rendering using asset: ${path}`);
+                    }
+                    
+                    return result;
+                } catch (e) {
+                    console.warn(`[WARN] Failed to load ${typeName} from: ${path}`);
+                }
+            }
+            console.error(`[ERROR] All paths failed for ${typeName}`);
+            return null;
+        };
+
+        // 1. Load Player Image (Preferring player.png)
+        assets.playerImg = await tryPaths(
+            [
+                './player.png',
+                './player.svg',
+                'assets/sprites/player.png',
+                'https://raw.githubusercontent.com/rebekah-ratliff/acid-game/main/player.png',
+                'https://raw.githubusercontent.com/rebekah-ratliff/acid-game/main/player.svg',
+                'https://raw.githubusercontent.com/rebekah-ratliff/acid-game/master/player.svg'
+            ],
+            (path) => new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous"; // Required to draw external images to Canvas
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error('Image load failed'));
+                img.src = path;
+            }),
+            "Player Sprite"
+        );
+
+        // 2. Load Audio from GitHub Repo
+        assets.trackAudioUrl = await tryPaths(
+            [
+                'https://raw.githubusercontent.com/rebekah-ratliff/acid-game/main/track.wav',
+                'https://raw.githubusercontent.com/rebekah-ratliff/acid-game/master/track.wav'
+            ],
+            async (path) => {
+                const response = await fetch(path, { method: 'HEAD' });
+                if (!response.ok) throw new Error('Audio HEAD request failed');
+                return path;
+            },
+            "Music Track"
+        );
+
+        // 3. Load Logo Image
+        assets.logoUrl = await tryPaths(
+            [
+                'assets/ui/logo.png',
+                './logo.png',
+                'https://raw.githubusercontent.com/rebekah-ratliff/acid-game/main/logo.png',
+                'https://raw.githubusercontent.com/rebekah-ratliff/acid-game/master/logo.png',
+                'https://raw.githubusercontent.com/rebekah-ratliff/acid-game/main/assets/ui/logo.png'
+            ],
+            async (path) => {
+                const response = await fetch(path, { method: 'HEAD' });
+                if (!response.ok) throw new Error('Logo HEAD request failed');
+                return path;
+            },
+            "Logo Overlay"
+        );
+
+        // Apply Logo if found
+        if (assets.logoUrl) {
+            const logoEl = document.createElement('img');
+            logoEl.id = 'game-logo';
+            logoEl.src = assets.logoUrl;
+            canvasContainer.appendChild(logoEl);
+        }
+    }
+
+    // ==========================================
+    // 4. AUDIO & BEAT SYSTEM
+    // ==========================================
+    // [FIX] Restored missing audio initialization to fix crash on start
+    function initAudio() {
+        if (!assets.trackAudioUrl) return;
+
+        // Reset if exists
+        if (state.audio.element) {
+            state.audio.element.pause();
+            state.audio.element.currentTime = 0;
+        } else {
+            state.audio.element = new Audio(assets.trackAudioUrl);
+            state.audio.element.loop = true;
+            state.audio.element.volume = 0.6;
+            state.audio.element.muted = state.audio.isMuted;
+            
+            // Show mute button when audio is initialized
+            btnMute.classList.remove('hidden');
+        }
+        
+        state.audio.element.play().then(() => {
+            state.audio.isPlaying = true;
+        }).catch(e => console.error("Audio playback blocked:", e));
+    }
+
+    // [FIX] Restored missing beat sync to fix crash in game loop
+    function updateBeatSync() {
+        if (!state.audio.isPlaying || !state.audio.element) {
+            state.audio.beatPhase = 0;
+            return;
+        }
+        
+        const time = state.audio.element.currentTime;
+        const beatDuration = 60 / CONFIG.audioBPM; // Seconds per beat
+        
+        // Phase goes 0.0 -> 1.0 continuously
+        state.audio.beatPhase = (time % beatDuration) / beatDuration;
+
+        // Apply visual CSS effects based on phase and trip level
+        const intensity = state.tripLevel / (CONFIG.tripStates.length - 1); // 0.0 to 1.0
+        
+        if (intensity > 0) {
+            // Scale pulse (sharp hit on beat, fades out)
+            const pulse = Math.max(0, 1 - (state.audio.beatPhase * 4)); 
+            const scale = 1.0 + (0.02 * pulse * intensity);
+            
+            // Chromatic shift pulse
+            const chroma = pulse * 4 * intensity; 
+            
+            canvasContainer.style.setProperty('--beat-scale', scale);
+            canvasContainer.style.setProperty('--chromatic-offset', `${chroma}px`);
+        } else {
+            canvasContainer.style.setProperty('--beat-scale', 1);
+            canvasContainer.style.setProperty('--chromatic-offset', `0px`);
+        }
+    }
+
+    // ==========================================
+    // 5. NARRATIVE / UI SYSTEM
+    // ==========================================
+    
+    // 1. PRE-RAVE-SPAWN: Searching and getting closer
+    const preRaveBeats = [
+        { p: "Bouncer at the pub said check the arches. Still looking.", s: "Ask for Big Dave by the kebab shop. He knows." },
+        { p: "Big Dave pointed down an alley by the minicabs. Smells like bleach.", s: "Yeah sounds right. Take the stairwell unless someone's called Dean." },
+        { p: "No Dean. Found a stairwell, but two lads in puffers are acting sketch.", s: "Ignore 'em. If it smells like jungle and sweat, you're close." },
+        { p: "Can hear something filthy vibrating through the brickwork.", s: "That's the low end. Follow the bassline mate." },
+        { p: "Swear the neon signs are melting. City feels like a living maze.", s: "Embrace the chaos. Don't look the foxes in the eye." },
+        { p: "Think I'm almost there. Queue wrapping around the shutter.", s: "Queue round the shutter. That's got to be it. Go inside." }
+    ];
+
+    // 2. POST-RAVE-SPAWN: Getting distracted outside the door
+    const postRaveBeats = [
+        { p: "Can see the shutter. Took another one anyway. Felt rude not to.", s: "Why are you still outside. Just go in." },
+        { p: "Met a girl in silver paint handing out stars. Lost the door again.", s: "You had the door. Ten seconds ago." },
+        { p: "Bass is coming through my teeth now. Gonna just sit here a minute.", s: "YES. THAT MEANS YOU ARE THERE. GO IN." },
+        { p: "I think the bouncer is a fractal.", s: "I SWEAR TO GOD JUST WALK INTO THE BUILDING." }
+    ];
+
+    function addMessage(sender, text) {
+        const div = document.createElement('div');
+        div.className = `msg ${sender}`;
+        div.innerText = text;
+        msgContainer.appendChild(div);
+        
+        // Auto-scroll
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
+
+    function triggerStoryBeat() {
+        let beat;
+
+        // Phase 1: Finding the rave (Tabs 1 to 6)
+        if (state.tabsCollected <= CONFIG.targetTabs) {
+            const beatIndex = Math.min(state.tabsCollected - 1, preRaveBeats.length - 1);
+            beat = preRaveBeats[beatIndex];
+        } 
+        // Phase 2: Distracted outside the rave (Tabs 7+)
+        else {
+            const beatIndex = Math.min(state.tabsCollected - CONFIG.targetTabs - 1, postRaveBeats.length - 1);
+            beat = postRaveBeats[beatIndex];
+        }
+
+        if (!beat) return;
+
+        addMessage('player', beat.p);
+        
+        // Slight delay for reply
+        setTimeout(() => {
+            if(state.isRunning) addMessage('shumsky', beat.s);
+        }, 800 + Math.random() * 1000);
+    }
+
+    function updateTripState() {
+        const level = Math.min(state.tabsCollected, CONFIG.tripStates.length - 1);
+        state.tripLevel = level;
+        
+        const config = CONFIG.tripStates[level];
+        tripStateEl.innerText = config.text;
+        tripStateEl.style.color = config.color;
+        
+        document.documentElement.style.setProperty('--trip-color', config.color);
+    }
+
+    // ==========================================
+    // 6. GAME LOGIC & ENTITIES
+    // ==========================================
+    
+    function resetGame() {
+        // Clear UI
+        msgContainer.innerHTML = '';
+        addMessage('shumsky', 'Where u at?');
+        
+        // Reset State & Generate a completely fresh maze!
+        state.mapData = generateMaze(CONFIG.mapCols, CONFIG.mapRows);
+        state.tabsCollected = 0;
+        state.tripLevel = 0;
+        updateTripState();
+        state.entities.tabs = [];
+        state.entities.rave = null;
+        
+        // Place Player (find first empty spot near top left)
+        let placed = false;
+        for(let y=1; y<state.mapData.length-1; y++) {
+            for(let x=1; x<state.mapData[0].length-1; x++) {
+                if(state.mapData[y][x] === 0) {
+                    state.player.gridX = x;
+                    state.player.gridY = y;
+                    state.player.x = x * state.tileSize;
+                    state.player.y = y * state.tileSize;
+                    state.player.targetX = state.player.x;
+                    state.player.targetY = state.player.y;
+                    placed = true;
+                    break;
+                }
+            }
+            if(placed) break;
+        }
+
+        // Place Tabs randomly
+        let tabsPlaced = 0;
+        let attempts = 0;
+        while(tabsPlaced < CONFIG.totalTabsToSpawn && attempts < 1000) {
+            let rx = Math.floor(Math.random() * state.mapData[0].length);
+            let ry = Math.floor(Math.random() * state.mapData.length);
+            
+            // Avoid walls and player start pos
+            if(state.mapData[ry][rx] === 0 && !(rx === state.player.gridX && ry === state.player.gridY)) {
+                // Check if tab already here
+                if(!state.entities.tabs.some(t => t.x === rx && t.y === ry)) {
+                    state.entities.tabs.push({ x: rx, y: ry });
+                    tabsPlaced++;
+                }
+            }
+            attempts++;
+        }
+        
+        initAudio();
+        state.isRunning = true;
+        
+        // Force resize calculation
+        resizeCanvas();
+    }
+
+    function spawnRaveTile() {
+        // Find empty spot far from player if possible
+        let available = [];
+        for(let y=1; y<state.mapData.length-1; y++) {
+            for(let x=1; x<state.mapData[0].length-1; x++) {
+                if(state.mapData[y][x] === 0) {
+                    // Quick manhattan distance
+                    let dist = Math.abs(x - state.player.gridX) + Math.abs(y - state.player.gridY);
+                    if(dist > 5) available.push({x, y});
+                }
+            }
+        }
+        
+        if(available.length > 0) {
+            let choice = available[Math.floor(Math.random() * available.length)];
+            state.entities.rave = { x: choice.x, y: choice.y };
+            // Note: Message generation is entirely handled by triggerStoryBeat now to prevent duplicates
+        }
+    }
+
+    function checkCollisions() {
+        const { gridX, gridY } = state.player;
+
+        // Tabs
+        const tabIndex = state.entities.tabs.findIndex(t => t.x === gridX && t.y === gridY);
+        if (tabIndex > -1) {
+            state.entities.tabs.splice(tabIndex, 1);
+            state.tabsCollected++;
+            updateTripState();
+            triggerStoryBeat();
+            
+            if(state.tabsCollected === CONFIG.targetTabs) {
+                spawnRaveTile();
+            }
+        }
+
+        // Rave tile
+        if (state.entities.rave && state.entities.rave.x === gridX && state.entities.rave.y === gridY) {
+            winGame();
+        }
+    }
+
+    function winGame() {
+        state.isRunning = false;
+        winScreen.classList.remove('hidden');
+
+        // Final success messages when rave is physically reached
+        setTimeout(() => {
+            addMessage('player', "Made it inside. Face is melting. Bass is unreal.");
+            setTimeout(() => {
+                addMessage('shumsky', "AIN'T NOTHIN WRONG WITH THAT. 🚀");
+                msgContainer.scrollTop = msgContainer.scrollHeight;
+            }, 1000);
+        }, 500);
+    }
+
+    function updateMovement() {
+        const p = state.player;
+        
+        // Are we currently moving to a target?
+        if (p.x !== p.targetX || p.y !== p.targetY) {
+            // Move towards target
+            const dx = p.targetX - p.x;
+            const dy = p.targetY - p.y;
+            
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist <= state.playerSpeed) {
+                // Snap to target
+                p.x = p.targetX;
+                p.y = p.targetY;
+                p.gridX = p.x / state.tileSize;
+                p.gridY = p.y / state.tileSize;
+                p.isMoving = false;
+                
+                checkCollisions();
+            } else {
+                p.x += (dx / dist) * state.playerSpeed;
+                p.y += (dy / dist) * state.playerSpeed;
+            }
+        } else {
+            // We are snapped to grid. Check inputs for next move.
+            let nextGridX = p.gridX;
+            let nextGridY = p.gridY;
+            let moved = false;
+
+            if (state.input.left) { nextGridX--; p.direction = 'left'; moved = true; }
+            else if (state.input.right) { nextGridX++; p.direction = 'right'; moved = true; }
+            else if (state.input.up) { nextGridY--; p.direction = 'up'; moved = true; }
+            else if (state.input.down) { nextGridY++; p.direction = 'down'; moved = true; }
+
+            if (moved) {
+                // Bounds & Wall check
+                if (nextGridY >= 0 && nextGridY < state.mapData.length &&
+                    nextGridX >= 0 && nextGridX < state.mapData[0].length &&
+                    state.mapData[nextGridY][nextGridX] !== 1) {
+                    
+                    p.targetX = nextGridX * state.tileSize;
+                    p.targetY = nextGridY * state.tileSize;
+                    p.isMoving = true;
+                }
+            }
+        }
+    }
+
+    // ==========================================
+    // 7. RENDERING SYSTEM
+    // ==========================================
+    
+    function resizeCanvas() {
+        // Keep internal resolution sharp but relative to container
+        const rect = canvasContainer.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+
+        // Dynamic tile size: scale the world to be zoomed in, not full-map fit
+        const visibleRowsTarget = 11; // We want roughly 11 tiles visible vertically
+        state.tileSize = Math.max(20, Math.floor(canvas.height / visibleRowsTarget));
+        
+        // Scale speed proportionally so movement feels consistent across different screen sizes
+        state.playerSpeed = Math.max(2, Math.floor(state.tileSize * 0.1));
+
+        // Snap player to grid scale if running to prevent pixel desyncs on resize
+        if (state.isRunning) {
+            state.player.x = state.player.gridX * state.tileSize;
+            state.player.y = state.player.gridY * state.tileSize;
+            state.player.targetX = state.player.x;
+            state.player.targetY = state.player.y;
+            state.player.isMoving = false;
+        }
+    }
+
+    function render() {
+        // Clear
+        ctx.fillStyle = CONFIG.colors.bg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Calculate Camera Offset to center player
+        // Subtract half the canvas size, add player position + half tile
+        state.camera.x = Math.floor(canvas.width / 2) - state.player.x - (state.tileSize / 2);
+        state.camera.y = Math.floor(canvas.height / 2) - state.player.y - (state.tileSize / 2);
+
+        ctx.save();
+        ctx.translate(state.camera.x, state.camera.y);
+
+        // 1. Draw Maze (Continuous, connected, but slightly thinner walls)
+        ctx.fillStyle = CONFIG.colors.wall;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = CONFIG.colors.wallGlow;
+
+        ctx.beginPath();
+        const t = state.tileSize;
+        const thickness = t * 0.55; // 55% thickness makes the maze feel open and breathable
+        const offset = (t - thickness) / 2;
+
+        for (let y = 0; y < state.mapData.length; y++) {
+            for (let x = 0; x < state.mapData[y].length; x++) {
+                if (state.mapData[y][x] === 1) {
+                    const px = x * t;
+                    const py = y * t;
+                    
+                    // Draw center node for the wall
+                    ctx.rect(px + offset, py + offset, thickness, thickness);
+                    
+                    // Bridge to the right neighbor
+                    if (x < state.mapData[y].length - 1 && state.mapData[y][x+1] === 1) {
+                        ctx.rect(px + offset + thickness - 0.5, py + offset, offset * 2 + 1, thickness);
+                    }
+                    // Bridge to the bottom neighbor
+                    if (y < state.mapData.length - 1 && state.mapData[y+1][x] === 1) {
+                        ctx.rect(px + offset, py + offset + thickness - 0.5, thickness, offset * 2 + 1);
+                    }
+                }
+            }
+        }
+        ctx.fill();
+        ctx.shadowBlur = 0; // Reset
+
+        // 2. Draw Tabs (Yellow pills)
+        ctx.fillStyle = CONFIG.colors.tab;
+        const pulseSize = Math.sin(Date.now() / 150) * 2; // Independent quick pulse
+        
+        state.entities.tabs.forEach(tab => {
+            const px = tab.x * state.tileSize + (state.tileSize / 2);
+            const py = tab.y * state.tileSize + (state.tileSize / 2);
+            
+            ctx.beginPath();
+            // Pill shape
+            ctx.ellipse(px, py, 4 + pulseSize/2, 8 + pulseSize, 0, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // 3. Draw Rave Tile
+        if (state.entities.rave) {
+            const rx = state.entities.rave.x * state.tileSize;
+            const ry = state.entities.rave.y * state.tileSize;
+            
+            // Psychedelic coloring based on beat phase
+            ctx.fillStyle = `hsl(${(Date.now() / 5) % 360}, 100%, 60%)`;
+            ctx.shadowBlur = 20 + Math.sin(state.audio.beatPhase * Math.PI) * 10;
+            ctx.shadowColor = ctx.fillStyle;
+            
+            ctx.fillRect(rx + 4, ry + 4, state.tileSize - 8, state.tileSize - 8);
+            ctx.shadowBlur = 0;
+        }
+
+        // 4. Draw Player
+        const pSize = state.tileSize * 1.35; // Noticeably larger player size (was 0.92)
+        const px = state.player.x + (state.tileSize - pSize) / 2;
+        
+        // Player beat bounce
+        // Sin curve from 0 to 1 back to 0 over the phase
+        const bounce = Math.sin(state.audio.beatPhase * Math.PI) * -4;
+        const py = state.player.y + (state.tileSize - pSize) / 2 + (state.tripLevel > 0 ? bounce : 0);
+
+        // Aura logic
+        const auraColor = CONFIG.tripStates[state.tripLevel].aura;
+        if (state.tripLevel > 0) {
+            const cx = px + pSize/2;
+            const cy = py + pSize/2;
+            const grad = ctx.createRadialGradient(cx, cy, pSize/4, cx, cy, pSize * 1.5);
+            grad.addColorStop(0, auraColor);
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, pSize * 1.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Render Image or fallback
+        if (assets.playerImg) {
+            ctx.save();
+            ctx.translate(px + pSize/2, py + pSize/2);
+            
+            // Mirror flip based on direction
+            if (state.player.direction === 'left') {
+                ctx.scale(-1, 1);
+            }
+            
+            // Maintain aspect ratio dynamically based on loaded image
+            let drawW = pSize;
+            let drawH = pSize;
+            
+            if (assets.playerImg.width && assets.playerImg.height) {
+                const imgRatio = assets.playerImg.width / assets.playerImg.height;
+                if (imgRatio < 1) {
+                    // Tall image (like the original ghost)
+                    drawH = pSize * 1.4; 
+                    drawW = drawH * imgRatio;
+                } else {
+                    // Wide or square image
+                    drawW = pSize * 1.2;
+                    drawH = drawW / imgRatio;
+                }
+            }
+            
+            ctx.drawImage(assets.playerImg, -drawW/2, -drawH/2, drawW, drawH);
+            ctx.restore();
+        } else {
+            // Fallback shape if Image failed (Custom ghost shape instead of plain white box)
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            // Head
+            ctx.arc(px + pSize/2, py + pSize*0.3, pSize/2, Math.PI, 0);
+            // Body
+            ctx.lineTo(px + pSize, py + pSize*1.2);
+            // Wavy bottom
+            ctx.lineTo(px + pSize*0.75, py + pSize*1.1);
+            ctx.lineTo(px + pSize*0.5, py + pSize*1.2);
+            ctx.lineTo(px + pSize*0.25, py + pSize*1.1);
+            ctx.lineTo(px, py + pSize*1.2);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Eyes to show direction
+            ctx.fillStyle = '#000';
+            const eyeOffset = state.player.direction === 'left' ? -3 : (state.player.direction === 'right' ? 3 : 0);
+            ctx.beginPath();
+            ctx.arc(px + pSize/2 - 4 + eyeOffset, py + pSize*0.4, 2.5, 0, Math.PI*2);
+            ctx.arc(px + pSize/2 + 4 + eyeOffset, py + pSize*0.4, 2.5, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        ctx.restore(); // Restore camera transform
+    }
+
+    // ==========================================
+    // 8. MAIN GAME LOOP
+    // ==========================================
+    
+    function gameLoop() {
+        if (state.isRunning) {
+            updateMovement();
+            updateBeatSync();
+        }
+        
+        // Dynamic Trip Status Rainbow Cycling
+        if (state.tripLevel > 0) {
+            // Speed scales exponentially with the trip level (level 1 = slow, level 6 = fast)
+            const speed = Math.pow(state.tripLevel, 1.5) * 0.02;
+            const hue = (Date.now() * speed) % 360;
+            tripStateEl.style.color = `hsl(${hue}, 100%, 65%)`;
+            tripStateEl.style.textShadow = `0 0 10px hsla(${hue}, 100%, 65%, 0.5)`;
+        } else {
+            // Stable text for level 0
+            tripStateEl.style.color = CONFIG.tripStates[0].color;
+            tripStateEl.style.textShadow = 'none';
+        }
+
+        render();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // ==========================================
+    // 9. INPUT HANDLING
+    // ==========================================
+    
+    window.addEventListener('keydown', (e) => {
+        if(e.key === 'ArrowUp' || e.key === 'w') state.input.up = true;
+        if(e.key === 'ArrowDown' || e.key === 's') state.input.down = true;
+        if(e.key === 'ArrowLeft' || e.key === 'a') state.input.left = true;
+        if(e.key === 'ArrowRight' || e.key === 'd') state.input.right = true;
+    });
+
+    window.addEventListener('keyup', (e) => {
+        if(e.key === 'ArrowUp' || e.key === 'w') state.input.up = false;
+        if(e.key === 'ArrowDown' || e.key === 's') state.input.down = false;
+        if(e.key === 'ArrowLeft' || e.key === 'a') state.input.left = false;
+        if(e.key === 'ArrowRight' || e.key === 'd') state.input.right = false;
+    });
+
+    window.addEventListener('resize', resizeCanvas);
+
+    // ==========================================
+    // 10. INITIALIZATION
+    // ==========================================
+    
+    document.getElementById('btn-start').addEventListener('click', () => {
+        startScreen.classList.add('hidden');
+        resetGame();
+    });
+
+    document.getElementById('btn-replay').addEventListener('click', () => {
+        winScreen.classList.add('hidden');
+        resetGame();
+    });
+
+    btnMute.addEventListener('click', () => {
+        state.audio.isMuted = !state.audio.isMuted;
+        if (state.audio.element) {
+            state.audio.element.muted = state.audio.isMuted;
+        }
+        btnMute.innerText = state.audio.isMuted ? '🔇 OFF' : '🔊 ON';
+    });
+
+    // Boot sequence
+    await loadAssets();
+    resizeCanvas();
+    render(); // Initial render behind overlay
+    requestAnimationFrame(gameLoop); // Start loop
+
+})();
+</script>
+
+</body>
+</html>
