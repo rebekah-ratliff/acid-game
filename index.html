@@ -434,8 +434,8 @@
         targetTabs: 6,
         totalTabsToSpawn: 10,
         mapScale: 0.45,
-        playerDrawSize: 52,
-        doctorDrawSize: 64,
+        playerDrawSize: 72,
+        doctorDrawSize: 88,
         tabDrawSize: 28,
         debugCollision: false, // Set to true to verify mask alignment
         colors: {
@@ -495,6 +495,9 @@
         },
         playerGlitch: {
             active: false, timer: 0, offsetX: 0, offsetY: 0, rgbSplit: false
+        },
+        playerHit: {
+            active: false, timer: 0
         },
         behavior: {
             lastTabTime: Date.now(), lastMessageTime: Date.now(),
@@ -941,6 +944,8 @@
         state.behavior.lastMessageTime = Date.now();
         state.behavior.directionChanges = 0;
         state.behavior.visitedTiles = [];
+        state.playerHit.active = false;
+        state.playerHit.timer = 0;
         
         // Spawn Player (try hardcoded central road area first, fallback to getWalkableSpot)
         let startX = state.mapWidth * 0.42;
@@ -998,6 +1003,11 @@
                 state.entities.doctor.punchTimer = 60; // 1 sec at 60fps
                 state.tripDistortion.active = true;
                 state.tripDistortion.timer = 20; // brief camera shake
+                
+                // Add red hit feedback
+                state.playerHit.active = true;
+                state.playerHit.timer = 20;
+                
                 triggerDoctorEncounter();
             }
         }
@@ -1138,12 +1148,19 @@
             if (doc.punchTimer > 0) doc.punchTimer--;
             let dSpr = doc.punchTimer > 0 ? assets.sprDocPunch : assets.sprDocIdle;
             const ds = CONFIG.doctorDrawSize;
+            
+            ctx.save();
+            ctx.shadowColor = "rgba(0,0,0,0.4)";
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetY = 4;
+            
             if (dSpr) {
                 ctx.drawImage(dSpr, doc.x - ds/2, doc.y - ds/2, ds, ds);
             } else {
                 ctx.fillStyle = 'purple';
                 ctx.fillRect(doc.x - ds/4, doc.y - ds/4, ds/2, ds/2);
             }
+            ctx.restore();
         }
 
         // 4. Draw Rave Tile
@@ -1188,6 +1205,10 @@
             ctx.scale(-1, 1);
         }
 
+        ctx.shadowColor = "rgba(0,0,0,0.4)";
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 4;
+
         if (pSpr) {
             if (isGlitching && state.playerGlitch.rgbSplit) {
                 ctx.globalAlpha = 0.6;
@@ -1196,6 +1217,17 @@
                 ctx.globalAlpha = 1.0;
             }
             ctx.drawImage(pSpr, -pSize/2, -pSize/2, pSize, pSize);
+            
+            // Hit feedback overlay
+            if (state.playerHit && state.playerHit.active && Math.floor(state.playerHit.timer / 4) % 2 === 0) {
+                ctx.save();
+                ctx.globalCompositeOperation = "source-atop";
+                ctx.shadowBlur = 0; // Prevent shadow duplicating on overlay
+                ctx.shadowOffsetY = 0;
+                ctx.fillStyle = "rgba(255, 0, 0, 0.6)";
+                ctx.fillRect(-pSize/2, -pSize/2, pSize, pSize);
+                ctx.restore();
+            }
         } else {
             // Fallback generic box
             ctx.fillStyle = '#fff';
@@ -1214,6 +1246,13 @@
         if (state.isRunning) {
             updateMovement();
             updateBeatSync();
+            
+            if (state.playerHit && state.playerHit.active) {
+                state.playerHit.timer--;
+                if (state.playerHit.timer <= 0) {
+                    state.playerHit.active = false;
+                }
+            }
         }
         
         if (state.tripLevel > 0) {
