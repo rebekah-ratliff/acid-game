@@ -120,7 +120,7 @@
             cursor: pointer;
             position: absolute;
             bottom: 35%;
-            right: 25%;
+            right: 45%;
             transition: transform 0.2s ease;
         }
 
@@ -612,7 +612,25 @@
             "Start Button Image"
         );
 
-        assets.mapImg = await loadSilent(BASE_URL + 'MAP.jpeg');
+        assets.mapImg = await tryPaths(
+            [
+                BASE_URL + 'map_upres_2.jpg',
+                BASE_URL + 'map_upres_2.JPG',
+                BASE_URL + 'MAP_UPRES_2.jpg',
+                BASE_URL + 'MAP_UPRES_2.JPG',
+                BASE_URL + 'MAP_UPRES.JPG',
+                BASE_URL + 'MAP.jpeg'
+            ],
+            loadImageFromURL,
+            "Map Image"
+        );
+
+        if (assets.mapImg) {
+            console.log("Map loaded:", assets.mapImg.src, assets.mapImg.width, assets.mapImg.height);
+        } else {
+            console.error("Map failed to load. Check exact GitHub filename and capitalization.");
+        }
+
         assets.collisionImg = await loadSilent(BASE_URL + 'MAP_COLLISION.png');
         assets.sprStand = await loadSilent(BASE_URL + 'STAND.png');
         assets.sprWalkDown = await loadSilent(BASE_URL + 'WALK_DOWN.png');
@@ -1519,7 +1537,7 @@
     }
 
     // Boot sequence
-    btnMute.classList.remove('hidden'); // Guarantee mute is usable before start
+    document.getElementById('btn-mute').classList.remove('hidden'); // Guarantee mute is usable before start
     await loadAssets();
     
     if (assets.homescreenImg) {
