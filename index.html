@@ -1218,14 +1218,30 @@
             }
             ctx.drawImage(pSpr, -pSize/2, -pSize/2, pSize, pSize);
             
-            // Hit feedback overlay
+            // Hit feedback overlay (Silhouette tint)
             if (state.playerHit && state.playerHit.active && Math.floor(state.playerHit.timer / 4) % 2 === 0) {
+                // Use a temporary canvas to apply source-atop safely to the sprite
+                // (Doing this on the main canvas would tint the opaque map background)
+                const tmpCanvas = document.createElement('canvas');
+                tmpCanvas.width = pSize;
+                tmpCanvas.height = pSize;
+                const tCtx = tmpCanvas.getContext('2d');
+                
+                // Draw sprite again for tint pass
+                tCtx.drawImage(pSpr, 0, 0, pSize, pSize);
+                
+                // Only apply color where the sprite exists
+                tCtx.globalCompositeOperation = "source-atop";
+                
+                // Red tint
+                tCtx.fillStyle = "rgba(255, 0, 0, 0.7)";
+                tCtx.fillRect(0, 0, pSize, pSize);
+                
                 ctx.save();
-                ctx.globalCompositeOperation = "source-atop";
                 ctx.shadowBlur = 0; // Prevent shadow duplicating on overlay
                 ctx.shadowOffsetY = 0;
-                ctx.fillStyle = "rgba(255, 0, 0, 0.6)";
-                ctx.fillRect(-pSize/2, -pSize/2, pSize, pSize);
+                ctx.globalCompositeOperation = "lighter"; // Punchier effect as requested
+                ctx.drawImage(tmpCanvas, -pSize/2, -pSize/2, pSize, pSize);
                 ctx.restore();
             }
         } else {
