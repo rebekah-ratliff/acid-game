@@ -43,11 +43,14 @@
             user-select: none;
         }
 
-        /* Layout */
+        /* Main App Container (Hidden initially until START DASH) */
         #app-container {
             display: flex;
             width: 100%;
             height: 100%;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-out;
         }
 
         #game-section {
@@ -83,20 +86,55 @@
             transition: transform 0.05s ease-out, filter 0.05s ease-out;
         }
 
-        /* UI Overlays */
+        /* UI Overlays (Now truly full-screen over the entire body) */
         .overlay {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background: rgba(12, 12, 14, 0.85);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 10;
+            z-index: 9999;
             backdrop-filter: blur(4px);
+        }
+
+        /* Custom Splash Screen Styling */
+        #start-screen {
+            position: fixed;
+            background-color: #000;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Image-based Start Button */
+        #btn-start {
+            background: none;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+            cursor: pointer;
+            position: absolute;
+            bottom: 35%;
+            right: 18%;
+            transition: transform 0.2s ease;
+        }
+
+        #btn-start:hover {
+            background: none;
+            box-shadow: none;
+            border: none;
+            transform: scale(1.05); /* Slight scale on hover for feedback */
+        }
+
+        #start-btn-img {
+            width: 260px;
+            height: auto;
+            display: block;
         }
 
         h1, h2, .koulen {
@@ -135,34 +173,48 @@
             box-shadow: 0 0 20px rgba(27, 0, 255, 0.6), inset 0 0 20px rgba(27, 0, 255, 0.6);
         }
 
-        /* Update mute button location to avoid overlapping the new logo */
+        /* Global Mute Button Fixed over everything */
         #btn-mute {
-            position: absolute;
+            position: fixed;
             bottom: 20px;
             right: 20px;
             top: auto;
-            z-index: 20;
+            z-index: 10000;
             font-size: 1rem;
             padding: 0.2rem 0.8rem;
             background: rgba(12, 12, 14, 0.8);
             border-width: 1px;
         }
 
-        /* Logo overlay styling */
-        #game-logo {
+        /* Trip Status Box UI */
+        #trip-status-box {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
-            top: auto;
-            right: auto;
-            max-width: 65px;
-            max-height: 40px;
-            width: auto;
-            height: auto;
-            z-index: 15;
-            opacity: 0.6;
-            filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
-            pointer-events: none; /* prevents blocking clicks */
+            top: 20px;
+            left: 20px; 
+            z-index: 20;
+            padding: 0.5rem 1.2rem;
+            background: rgba(12, 12, 14, 0.85);
+            border: 1px solid var(--maze-dark);
+            border-radius: 8px;
+            text-align: center;
+            min-width: 140px;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            pointer-events: none;
+        }
+
+        .status-label {
+            font-size: 0.6rem;
+            color: #888;
+            margin-bottom: 2px;
+            letter-spacing: 1.5px;
+        }
+
+        #trip-state {
+            font-size: 0.75rem;
+            color: var(--trip-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         /* Phone UI Panel */
@@ -222,41 +274,10 @@
             z-index: 2;
         }
 
-        /* Trip Status Box UI */
-        #trip-status-box {
-            position: absolute;
-            top: 20px;
-            left: 20px; 
-            z-index: 20;
-            padding: 0.5rem 1.2rem;
-            background: rgba(12, 12, 14, 0.85);
-            border: 1px solid var(--maze-dark);
-            border-radius: 8px;
-            text-align: center;
-            min-width: 140px;
-            backdrop-filter: blur(4px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-            pointer-events: none;
-        }
-
-        .status-label {
-            font-size: 0.6rem;
-            color: #888;
-            margin-bottom: 2px;
-            letter-spacing: 1.5px;
-        }
-
         #contact-name {
             font-size: 1.5rem;
             color: #fff;
             margin-bottom: 0.2rem;
-        }
-
-        #trip-state {
-            font-size: 0.75rem;
-            color: var(--trip-color);
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         #messages-container {
@@ -375,29 +396,28 @@
 </head>
 <body>
 
+<!-- Global Overlays outside of the hidden app container -->
+<button id="btn-mute" class="hidden">🔊 ON</button>
+
+<div id="start-screen" class="overlay">
+    <button id="btn-start">
+        <img id="start-btn-img" />
+    </button>
+</div>
+
+<div id="win-screen" class="overlay hidden">
+    <h1 style="font-size: 3rem; text-align: center;">ain't nothin' wrong<br>with that!</h1>
+    <button id="btn-replay" style="margin-top: 2rem;">Go again</button>
+</div>
+
+<!-- Main App Container -->
 <div id="app-container">
     <div id="game-section">
         <div id="canvas-container">
             <canvas id="game"></canvas>
-            
-            <button id="btn-mute" class="hidden">🔊 ON</button>
-
             <div id="trip-status-box">
                 <div class="status-label">TRIP STATUS</div>
                 <div id="trip-state">Sound</div>
-            </div>
-
-            <div id="start-screen" class="overlay">
-                <h1>Rave Maze</h1>
-                <p style="margin-bottom: 2rem; opacity: 0.7; text-align: center; max-width: 80%;">
-                    Arrow keys to move. Find tabs. Find the rave.
-                </p>
-                <button id="btn-start">Enter</button>
-            </div>
-
-            <div id="win-screen" class="overlay hidden">
-                <h1 style="font-size: 3rem; text-align: center;">ain't nothin' wrong<br>with that!</h1>
-                <button id="btn-replay" style="margin-top: 2rem;">Go again</button>
             </div>
         </div>
     </div>
@@ -415,8 +435,7 @@
         <div id="phone-header">
             <div id="contact-name" class="koulen">Smumsky</div>
         </div>
-        <div id="messages-container">
-        </div>
+        <div id="messages-container"></div>
     </div>
 </div>
 
@@ -521,6 +540,8 @@
     const assets = {
         mapImg: null,
         collisionImg: null,
+        homescreenImg: null,
+        startBtnImg: null,
         sprStand: null, sprWalkDown: null, sprWalkUp: null, sprWalkSide1: null, sprWalkSide2: null,
         sprDocIdle: null, sprDocPunch: null,
         trackAudioUrl: null, logoUrl: null, tabImg: null 
@@ -559,25 +580,37 @@
             async (path) => { const r = await fetch(path, { method: 'HEAD' }); if (!r.ok) throw new Error('Audio FAIL'); return path; },
             "Music Track"
         );
-        assets.logoUrl = await tryPaths(
-            ['https://raw.githubusercontent.com/rebekah-ratliff/acid-game/main/logo.png', './logo.png'],
-            async (path) => { const r = await fetch(path, { method: 'HEAD' }); if (!r.ok) throw new Error('Logo FAIL'); return path; },
-            "Logo Overlay"
-        );
-        if (assets.logoUrl) {
-            const logoEl = document.createElement('img');
-            logoEl.id = 'game-logo';
-            logoEl.src = assets.logoUrl;
-            canvasContainer.appendChild(logoEl);
-        }
         assets.tabImg = await tryPaths(
             ['https://raw.githubusercontent.com/rebekah-ratliff/acid-game/main/tab.png', './tab.png'],
             loadImageFromURL, "Tab Sprite"
         );
 
-        // 2. Load NEW Visual Assets
+        // 2. Load Visual Assets
         const BASE_URL = 'https://raw.githubusercontent.com/rebekah-ratliff/acid-game/main/';
         const loadSilent = async (url) => { try { return await loadImageFromURL(url); } catch(e){ return null; } };
+
+        // Support multiple homescreen variants for robustness
+        assets.homescreenImg = await tryPaths(
+            [
+                BASE_URL + 'homescreen.png',
+                BASE_URL + 'homescreen.jpg',
+                BASE_URL + 'homescreen.jpeg',
+                BASE_URL + 'homescreen.webp',
+                BASE_URL + 'HomeScreen.png',
+                BASE_URL + 'HOMESCREEN.png'
+            ],
+            loadImageFromURL,
+            "Homescreen Image"
+        );
+
+        assets.startBtnImg = await tryPaths(
+            [
+                BASE_URL + 'STARTDASH.png',
+                BASE_URL + 'STARTDASH.PNG'
+            ],
+            loadImageFromURL,
+            "Start Button Image"
+        );
 
         assets.mapImg = await loadSilent(BASE_URL + 'MAP.jpeg');
         assets.collisionImg = await loadSilent(BASE_URL + 'MAP_COLLISION.png');
@@ -625,7 +658,6 @@
             state.audio.element.loop = true;
             state.audio.element.volume = 0.6;
             state.audio.element.muted = state.audio.isMuted;
-            btnMute.classList.remove('hidden');
         }
         
         state.audio.lastBeatIndex = -1;
@@ -1461,25 +1493,46 @@
     // 10. INITIALIZATION
     // ==========================================
     document.getElementById('btn-start').addEventListener('click', () => {
-        startScreen.classList.add('hidden');
+        document.getElementById('start-screen').classList.add('hidden');
+        
+        const app = document.getElementById('app-container');
+        app.style.opacity = 1;
+        app.style.pointerEvents = 'auto';
+        
         resetGame();
     });
 
     document.getElementById('btn-replay').addEventListener('click', () => {
-        winScreen.classList.add('hidden');
+        document.getElementById('win-screen').classList.add('hidden');
         resetGame();
     });
 
-    btnMute.addEventListener('click', () => {
-        state.audio.isMuted = !state.audio.isMuted;
-        if (state.audio.element) {
-            state.audio.element.muted = state.audio.isMuted;
-        }
-        btnMute.innerText = state.audio.isMuted ? '🔇 OFF' : '🔊 ON';
-    });
+    if (!document.getElementById('btn-mute').dataset.bound) {
+        document.getElementById('btn-mute').addEventListener('click', () => {
+            state.audio.isMuted = !state.audio.isMuted;
+            if (state.audio.element) {
+                state.audio.element.muted = state.audio.isMuted;
+            }
+            document.getElementById('btn-mute').innerText = state.audio.isMuted ? '🔇 OFF' : '🔊 ON';
+        });
+        document.getElementById('btn-mute').dataset.bound = "true";
+    }
 
     // Boot sequence
+    btnMute.classList.remove('hidden'); // Guarantee mute is usable before start
     await loadAssets();
+    
+    if (assets.homescreenImg) {
+        console.log("Homescreen loaded:", assets.homescreenImg.src);
+        document.getElementById('start-screen').style.backgroundImage = `url('${assets.homescreenImg.src}')`;
+    } else {
+        console.warn("Homescreen image failed to load. Check filename and GitHub path.");
+    }
+
+    if (assets.startBtnImg) {
+        document.getElementById('start-btn-img').src = assets.startBtnImg.src;
+    }
+    
     resizeCanvas();
     render(); 
     requestAnimationFrame(gameLoop); 
