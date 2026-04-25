@@ -119,8 +119,8 @@
             padding: 0;
             cursor: pointer;
             position: absolute;
-            bottom: 35%;
-            right: 45%;
+            bottom: 22%;
+            right: 18%;
             transition: transform 0.2s ease;
         }
 
@@ -310,6 +310,34 @@
             100% { opacity: 1; transform: translateY(0) scale(1); }
         }
 
+        #intro-overlay {
+            background: rgba(12, 12, 14, 0.55);
+            backdrop-filter: blur(4px);
+            transition: opacity 0.5s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #intro-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            letter-spacing: 0.08em;
+            color: #cccccc;
+            text-align: center;
+            
+            opacity: 0;
+            transform: translateY(6px);
+            animation: introFadeIn 0.4s ease forwards;
+        }
+
+        @keyframes introFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .msg.smumsky {
             align-self: flex-start;
             background-color: var(--msg-smumsky);
@@ -403,6 +431,12 @@
     <button id="btn-start">
         <img id="start-btn-img" />
     </button>
+</div>
+
+<div id="intro-overlay" class="overlay hidden">
+    <div id="intro-text">
+        use arrow keys. find the rave.
+    </div>
 </div>
 
 <div id="win-screen" class="overlay hidden">
@@ -611,7 +645,7 @@
             loadImageFromURL,
             "Start Button Image"
         );
-
+        
         assets.mapImg = await tryPaths(
             [
                 BASE_URL + 'map_upres_2.jpg',
@@ -1484,6 +1518,13 @@
             }
         }
 
+        // Micro-polish: subtle flicker on intro text at higher trip levels
+        const introOverlay = document.getElementById('intro-overlay');
+        if (state.isRunning && !introOverlay.classList.contains('hidden') && state.tripLevel > 2) {
+            const introText = document.getElementById('intro-text');
+            if (introText) introText.style.opacity = 0.85 + Math.random() * 0.15;
+        }
+
         render();
         requestAnimationFrame(gameLoop);
     }
@@ -1516,6 +1557,21 @@
         const app = document.getElementById('app-container');
         app.style.opacity = 1;
         app.style.pointerEvents = 'auto';
+
+        // SHOW INTRO OVERLAY
+        const intro = document.getElementById('intro-overlay');
+        intro.classList.remove('hidden');
+
+        // FADE OUT AFTER DELAY
+        setTimeout(() => {
+            intro.style.opacity = 0;
+
+            setTimeout(() => {
+                intro.classList.add('hidden');
+                intro.style.opacity = 1; // reset for next run
+            }, 500);
+
+        }, 2500);
         
         resetGame();
     });
