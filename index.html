@@ -43,7 +43,7 @@
             user-select: none;
         }
 
-        /* Main App Container (Hidden initially until START DASH) */
+        /* Main App Container */
         #app-container {
             display: flex;
             width: 100%;
@@ -70,6 +70,8 @@
             height: 100%;
             background-color: var(--bg-color);
             box-shadow: 0 0 50px rgba(10, 0, 148, 0.2) inset;
+            transform-origin: center center;
+            transition: transform 0.05s linear;
         }
 
         canvas {
@@ -173,68 +175,72 @@
             box-shadow: 0 0 20px rgba(27, 0, 255, 0.6), inset 0 0 20px rgba(27, 0, 255, 0.6);
         }
 
-        /* Global Mute Button Fixed over everything */
+        /* Global Mute Button */
         #btn-mute {
             position: fixed;
             bottom: 20px;
-            right: 20px;
-            top: auto;
+            left: 20px;
             z-index: 10000;
-            font-size: 1rem;
-            padding: 0.2rem 0.8rem;
-            background: rgba(12, 12, 14, 0.8);
-            border-width: 1px;
-        }
 
-        /* Trip Status Box UI (Nokia LCD Style) */
-        #trip-status-box {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            z-index: 20;
-            padding: 6px 10px;
-            background: #9fb7ff; /* LCD blue */
+            padding: 4px 10px;
+
+            background: #9fb7ff;
             color: #050816;
+
             border-left: 3px solid #5366a8;
             border-right: 3px solid #1d2448;
             border-top: 2px solid #5366a8;
             border-bottom: 2px solid #1d2448;
+
             font-family: 'JetBrains Mono', monospace;
-            min-width: 120px;
+            font-size: 0.65rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            font-weight: 700;
+
+            cursor: pointer;
+            box-shadow: none;
+
             image-rendering: pixelated;
-            pointer-events: none;
         }
-        
-        #trip-status-box::after {
+
+        #btn-mute::after {
             content: "";
             position: absolute;
             inset: 0;
             pointer-events: none;
+
             background:
                 repeating-linear-gradient(
                     0deg,
-                    rgba(5, 8, 22, 0.08) 0px,
-                    rgba(5, 8, 22, 0.08) 1px,
+                    rgba(5, 8, 22, 0.12) 0px,
+                    rgba(5, 8, 22, 0.12) 1px,
                     transparent 1px,
                     transparent 4px
                 );
-            opacity: 0.4;
+
+            opacity: 0.35;
         }
 
-        .status-label {
-            font-size: 0.55rem;
-            color: #050816;
-            opacity: 0.7;
-            letter-spacing: 1px;
-            margin-bottom: 2px;
+        #btn-mute:active {
+            transform: translateY(1px);
+            border-top: 2px solid #1d2448;
+            border-bottom: 2px solid #5366a8;
         }
 
-        #trip-state {
-            font-size: 0.75rem;
+        #btn-mute:hover {
+            background: #8aa6ff;
             color: #050816;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            font-weight: 700;
+            box-shadow: none;
+        }
+
+        #white-flash {
+            position: fixed;
+            inset: 0;
+            background: #dce8ff;
+            z-index: 9998;
+            opacity: 0;
+            pointer-events: none;
         }
 
         /* Retro Phone UI Panel */
@@ -358,7 +364,6 @@
             border-top: none;
             border-bottom: 3px solid #1d2448;
             padding: 0.65rem 0.55rem;
-            gap: 0.35rem;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -372,6 +377,7 @@
         /* Rigid SMS Log Messages */
         .msg {
             max-width: 100%;
+            margin-top: 2px;
             padding: 0.15rem 0;
             border-radius: 0;
             font-size: 0.78rem;
@@ -381,57 +387,58 @@
             position: relative;
             background: none !important;
             box-shadow: none !important;
-            color: #050816;
             font-weight: 700;
-        }
-
-        .msg.smumsky,
-        .msg.dee,
-        .msg.gaz {
             align-self: stretch;
-            color: #050816;
         }
 
-        .msg.player {
-            align-self: stretch;
-            color: #18204a;
-            text-align: left;
+        .msg + .msg {
+            margin-top: 2px;
         }
 
-        .msg.smumsky::before {
-            content: "S:";
-            display: inline;
+        /* Add extra space when speaker changes */
+        .msg.smumsky + .msg.player,
+        .msg.player + .msg.smumsky,
+        .msg.dee + .msg.player,
+        .msg.gaz + .msg.player,
+        .msg.player + .msg.dee,
+        .msg.player + .msg.gaz {
+            margin-top: 8px;
+        }
+
+        /* Subtle message grouping for consecutive messages */
+        .msg.smumsky + .msg.smumsky,
+        .msg.player + .msg.player,
+        .msg.dee + .msg.dee,
+        .msg.gaz + .msg.gaz {
+            opacity: 0.9;
+        }
+
+        /* Distinct speaker colors */
+        .msg.smumsky { color: #050816; }
+        .msg.player { color: #1B00FF; text-align: left; }
+        .msg.dee { color: #6a4cff; }
+        .msg.gaz { color: #007acc; }
+
+        /* Prefix Labels */
+        .msg::before {
+            display: inline-block;
+            width: 42px;
+            opacity: 0.7;
             margin-right: 0.35rem;
             color: #0A0094;
             font-weight: 700;
             font-size: inherit;
         }
 
-        .msg.player::before {
-            content: "D:";
-            display: inline;
-            margin-right: 0.35rem;
-            color: #0A0094;
-            font-weight: 700;
-            font-size: inherit;
-        }
+        .msg.smumsky::before { content: "SMU:"; }
+        .msg.player::before { content: "DIZ:"; }
+        .msg.dee::before { content: "DEE:"; }
+        .msg.gaz::before { content: "GAZ:"; }
 
-        .msg.dee::before {
-            content: "DEE:";
-            display: inline;
-            margin-right: 0.35rem;
-            color: #0A0094;
-            font-weight: 700;
-            font-size: inherit;
-        }
-
-        .msg.gaz::before {
-            content: "GAZ:";
-            display: inline;
-            margin-right: 0.35rem;
-            color: #0A0094;
-            font-weight: 700;
-            font-size: inherit;
+        /* Blinking Cursor */
+        .msg:last-child::after {
+            content: " ▌";
+            animation: blink 1s infinite;
         }
 
         #phone-softkeys {
@@ -442,6 +449,11 @@
             font-size: 0.72rem;
             font-weight: 700;
             letter-spacing: 0.03em;
+        }
+
+        @keyframes blink {
+            0%, 50%, 100% { opacity: 1; }
+            25%, 75% { opacity: 0; }
         }
 
         @keyframes popIn {
@@ -485,67 +497,42 @@
 
         /* Win Screen Styles */
         #win-screen {
-            background: rgba(12, 12, 14, 0.88);
-            backdrop-filter: blur(4px);
+            background: #0C0C0E;
+            padding: 0;
         }
 
-        #win-card {
-            background: #9fb7ff;
-            color: #050816;
-            border-left: 4px solid #5366a8;
-            border-right: 4px solid #1d2448;
-            border-top: 4px solid #5366a8;
-            border-bottom: 4px solid #1d2448;
-            padding: 1.4rem 1.8rem;
-            min-width: 320px;
-            max-width: 460px;
-            font-family: 'JetBrains Mono', monospace;
-            text-align: center;
-            image-rendering: pixelated;
-            position: relative;
-        }
-
-        #win-card::after {
-            content: "";
+        .ending-gif {
             position: absolute;
-            inset: 0;
-            pointer-events: none;
-            background:
-                repeating-linear-gradient(
-                    0deg,
-                    rgba(5, 8, 22, 0.10) 0px,
-                    rgba(5, 8, 22, 0.10) 1px,
-                    transparent 1px,
-                    transparent 4px
-                ),
-                repeating-linear-gradient(
-                    90deg,
-                    rgba(5, 8, 22, 0.05) 0px,
-                    rgba(5, 8, 22, 0.05) 1px,
-                    transparent 1px,
-                    transparent 4px
-                );
-            opacity: 0.45;
-            mix-blend-mode: multiply;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            opacity: 0.6;
         }
 
-        #win-status {
-            font-size: 0.7rem;
-            letter-spacing: 0.08em;
-            font-weight: 700;
-            margin-bottom: 0.9rem;
-            opacity: 0.75;
-            text-transform: uppercase;
+        #win-content-container {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
         }
 
         #win-title {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             line-height: 1.25;
             letter-spacing: 0.04em;
             font-weight: 700;
-            margin-bottom: 1.2rem;
+            margin-bottom: 2rem;
             text-transform: uppercase;
+            color: #d7ead1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            opacity: 0;
+            transition: opacity 1s ease;
         }
 
         #btn-replay {
@@ -559,14 +546,16 @@
             padding: 0.45rem 1rem;
             letter-spacing: 0.06em;
             position: relative;
-            z-index: 2; /* Important so it stays above the LCD scanlines! */
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
         }
 
         #btn-replay:hover {
             background: #1B00FF;
             color: #ffffff;
             border-color: #1B00FF;
-            box-shadow: none;
         }
 
         @media (max-width: 800px) {
@@ -586,7 +575,8 @@
 <body>
 
 <!-- Global Overlays outside of the hidden app container -->
-<button id="btn-mute" class="hidden">🔊 ON</button>
+<button id="btn-mute" class="hidden">SOUND ON</button>
+<div id="white-flash" class="hidden"></div>
 
 <div id="start-screen" class="overlay">
     <button id="btn-start">
@@ -601,9 +591,9 @@
 </div>
 
 <div id="win-screen" class="overlay hidden">
-    <div id="win-card">
-        <div id="win-status">MESSAGE RECEIVED</div>
-        <div id="win-title">AIN'T NOTHIN'<br>WRONG WITH THAT!</div>
+    <img id="win-gif" class="ending-gif" />
+    <div id="win-content-container">
+        <div id="win-title">ain't nothin' wrong with that</div>
         <button id="btn-replay">GO AGAIN</button>
     </div>
 </div>
@@ -651,6 +641,7 @@
         audioBPM: 128,
         targetTabs: 6,
         totalTabsToSpawn: 10,
+        minTabDistance: 350, // Minimum world distance between spawned tabs
         mapScale: 0.45,
         playerDrawSize: 72,
         doctorDrawSize: 88,
@@ -681,9 +672,20 @@
         collisionWidth: 2000,
         collisionHeight: 2000,
         collisionImageData: null,
-        zoom: 1, // Fixed scalable 1:1 view of the pre-scaled map coordinate system
+        zoom: 1.05, // Scaled up 5%
         playerSpeed: 6, // Smooth movement speed
         isRunning: false,
+        isEnteringRave: false,
+        raveEnterTimer: 0,
+        raveZoomTimer: 0,
+        isEnding: false,
+        endingTimer: 0,
+        endingPhase: "none",
+        lastGifElement: null,
+        entryFlash: {
+            active: false,
+            timer: 0
+        },
         tabsCollected: 0,
         tripLevel: 0,
         currentStory: null,
@@ -740,6 +742,7 @@
         collisionImg: null,
         homescreenImg: null,
         startBtnImg: null,
+        dizzyDance: null,
         sprStand: null, sprWalkDown: null, sprWalkUp: null, sprWalkSide1: null, sprWalkSide2: null,
         sprDocIdle: null, sprDocPunch: null,
         trackAudioUrl: null, logoUrl: null, tabImg: null 
@@ -808,6 +811,16 @@
             ],
             loadImageFromURL,
             "Start Button Image"
+        );
+        
+        assets.dizzyDance = await tryPaths(
+            [
+                BASE_URL + 'DIZZY_DANCE.gif',
+                BASE_URL + 'DIZZY_DANCE.GIF',
+                BASE_URL + 'dizzy_dance.gif'
+            ],
+            loadImageFromURL,
+            "Dizzy Dance GIF"
         );
         
         assets.mapImg = await tryPaths(
@@ -938,7 +951,7 @@
           { p: "There's a queue under a bridge and everyone looks 40% awake.", s: "That'll be it. Move." }
         ],
         postRave: [
-          { p: "Can see the queue. Took another one anyway.", s: "Why are you still outside." },
+          { p: "Can see the queue. Took another tab near a bin bag mountain.", s: "Why are you still outside." },
           { p: "Underpass is humming. I'm considering becoming part of the wall.", s: "Dizzy. Door. Now." },
           { p: "Met a lad selling glowsticks out a Tesco bag.", s: "Ignore him and go in." },
           { p: "I am so close I can taste the fog machine.", s: "THEN ENTER THE BUILDING." }
@@ -952,7 +965,7 @@
           { character: "dee", trigger: "mid_progress", messages: [{ s: "You near the flyover? I'm by a pillar with a smiley face on it." }, { p: "Every pillar has a smiley face on it." }] },
           { character: "gaz", trigger: "random", messages: [{ s: "don't use the main stairs. bouncer's a jobsworth." }, { p: "Amazing. First useful thing you've ever said." }] }
         ],
-        ending: { player: "Made it in. Ceiling's sweating.", smumsky: "Told you. Ain't nothin wrong with that." }
+        ending: { player: "Made it in. Ceiling's sweating.", smumsky: "Told you. Ain't nothin' wrong with that." }
       },
       {
         id: "market_basement",
@@ -994,7 +1007,7 @@
           { p: "There's a glow under a railway arch and no signage whatsoever.", s: "That's because it's correct." }
         ],
         postRave: [
-          { p: "Arch is right there. Took another one to honour the broadcast.", s: "Stop honouring things and walk in." },
+          { p: "Arch is right there. Took another tab near a bin bag mountain.", s: "Stop honouring things and walk in." },
           { p: "Radio host now sounds like he's inside my coat.", s: "Good. Follow coat man into the rave." },
           { p: "I can hear the MC through the brick.", s: "THAT MEANS YOU FOUND IT." },
           { p: "Canal water's looking judgmental.", s: "Ignore the canal." }
@@ -1016,10 +1029,7 @@
         preRave: [
           { p: "Depot's lit like a hospital. Hate this already.", s: "Good raves often start from ugly places." },
           { p: "Found drivers smoking behind a shutter.", s: "Ask the one who looks least alive." },
-          { p: "One of them just nodded at a service lane and said 'down there.'", s: "That's basically a map." },
-          { p: "There's a broken vending machine humming in E.", s: "Stay with it. Sounds promising." },
-          { p: "Think I'm behind the depot now. No normal person would be here.", s: "Perfect." },
-          { p: "Can hear four-on-the-floor behind corrugated metal.", s: "Then you've done it. Nearly." }
+          { p: "One of them just nodded at a service lane and said 'down there.'", s: "That'll be it. Move." }
         ],
         postRave: [
           { p: "Door's here. Stopped to admire a haunted bus tyre.", s: "Dizzy I need you to focus." },
@@ -1039,12 +1049,75 @@
       }
     ];
 
-    function addMessage(sender, text) {
+    function applyTypingDegradation(text, level) {
+        if (level <= 1) return text;
+
+        // LEVEL 2–3: light shorthand
+        if (level <= 3) {
+            return text
+                .replace(/\byou\b/gi, "u")
+                .replace(/\bare\b/gi, "r")
+                .replace(/\byour\b/gi, "ur");
+        }
+
+        // LEVEL 4–5: slight looseness (still readable)
+        if (level <= 5) {
+            return text
+                .replace(/\bgoing\b/gi, "goin")
+                .replace(/\bwith\b/gi, "w/")
+                .replace(/\bto\b/gi, "2");
+        }
+
+        // LEVEL 6+: subtle vibe shift, NOT broken text
+        if (level >= 6) {
+            // occasional repeated thought
+            if (Math.random() < 0.2) {
+                const words = text.split(" ");
+                const short = words.slice(0, 3).join(" ");
+                return text + "..." + short;
+            }
+
+            // occasional trailing thought
+            if (Math.random() < 0.3) {
+                return text + "... wait";
+            }
+
+            return text;
+        }
+
+        return text;
+    }
+
+    function addMessage(sender, text, options = null) {
+        if (sender === 'player' && text) {
+            text = applyTypingDegradation(text, state.tripLevel);
+        }
         const div = document.createElement('div');
         div.className = `msg ${sender}`;
-        div.innerText = text;
+        
+        if (text) {
+            div.innerText = text;
+        }
+        
+        let img = null;
+        if (options && options.type === 'gif') {
+            img = document.createElement('img');
+            img.classList.add("chat-gif");
+            img.src = options.src;
+            img.style.width = '100%';
+            img.style.height = 'auto';
+            img.style.display = 'block';
+            img.style.marginTop = text ? '4px' : '0';
+            img.style.border = '2px solid #1d2448';
+            div.appendChild(img);
+        }
+
         msgContainer.appendChild(div);
         msgContainer.scrollTop = msgContainer.scrollHeight;
+
+        if (options && options.type === 'gif' && img) {
+            state.lastGifElement = img;
+        }
     }
 
     function triggerStoryBeat() {
@@ -1066,14 +1139,15 @@
         }, delay);
 
         // Side Encounters
+        const encounters = state.currentStory.encounters || [];
         let encounter = null;
         const midCount = Math.floor(CONFIG.targetTabs / 2);
         if (state.tabsCollected === midCount) {
-            encounter = state.currentStory.encounters.find(e => e.trigger === 'mid_progress' && !state.encountersUsed.includes(e));
+            encounter = encounters.find(e => e.trigger === 'mid_progress' && !state.encountersUsed.includes(e));
         } else if (state.tabsCollected === CONFIG.targetTabs + 1) {
-            encounter = state.currentStory.encounters.find(e => e.trigger === 'late_progress' && !state.encountersUsed.includes(e));
+            encounter = encounters.find(e => e.trigger === 'late_progress' && !state.encountersUsed.includes(e));
         } else if (Math.random() < 0.15) { 
-            const pool = state.currentStory.encounters.filter(e => e.trigger === 'random' && !state.encountersUsed.includes(e));
+            const pool = encounters.filter(e => e.trigger === 'random' && !state.encountersUsed.includes(e));
             if (pool.length > 0) encounter = pool[Math.floor(Math.random() * pool.length)];
         }
 
@@ -1099,10 +1173,12 @@
 
     function triggerDoctorEncounter() {
         const docMsgs = [
-            { s: "player", t: "just ran into some doctor bloke" },
-            { s: "smumsky", t: "why is there a doctor at the rave" },
-            { s: "player", t: "he punched the air then looked through me" },
-            { s: "smumsky", t: "standard. keep moving." }
+            { s: "player", t: "why did that doctor just punch me" },
+            { s: "smumsky", t: "which doctor" },
+            { s: "player", t: "the one in the street" },
+            { s: "smumsky", t: "yeah don't worry about him" },
+            { s: "player", t: "he fully hit me" },
+            { s: "smumsky", t: "keep moving then" }
         ];
         
         let msgOffset = 0;
@@ -1115,6 +1191,14 @@
             }, msgOffset);
             msgOffset += 1500 + Math.random() * 1000;
         });
+    }
+
+    function updateTripState() {
+        const level = Math.min(state.tabsCollected, CONFIG.tripStates.length - 1);
+        state.tripLevel = level;
+
+        const config = CONFIG.tripStates[level];
+        document.documentElement.style.setProperty('--trip-color', config.color);
     }
 
     // ==========================================
@@ -1144,16 +1228,18 @@
         const b = state.collisionImageData[idx + 2];
         const brightness = (r + g + b) / 3;
 
-        return brightness > 200;
+        return brightness > 180;
     }
 
     function isWalkableRect(cx, cy, w, h) {
-        const footW = CONFIG.playerDrawSize * 0.35;
-        const footH = CONFIG.playerDrawSize * 0.25;
-        return isWalkable(cx, cy) && 
-               isWalkable(cx, cy + footH/2) &&
-               isWalkable(cx - footW/2, cy + footH/2) &&
-               isWalkable(cx + footW/2, cy + footH/2);
+        const footW = CONFIG.playerDrawSize * 0.28;
+        const footY = cy + (CONFIG.playerDrawSize * 0.32); // push down to actual feet
+
+        return (
+               isWalkable(cx, footY) &&
+               isWalkable(cx - footW / 2, footY) &&
+               isWalkable(cx + footW / 2, footY)
+        );
     }
 
     function getWalkableSpot(minDistFromPlayer = 0) {
@@ -1177,6 +1263,8 @@
         state.tabsCollected = 0;
         state.tripLevel = 0;
         state.encountersUsed = []; 
+
+        updateTripState();
         
         state.behavior.lastTabTime = Date.now();
         state.behavior.lastMessageTime = Date.now();
@@ -1185,6 +1273,36 @@
         state.playerHit.active = false;
         state.playerHit.timer = 0;
         
+        // Clean up ending animation states
+        state.isEnding = false;
+        state.endingTimer = 0;
+        state.endingPhase = "none";
+        state.lastGifElement = null;
+        state.isEnteringRave = false;
+        state.raveEnterTimer = 0;
+        state.raveZoomTimer = 0;
+        state.entryFlash = {
+            active: false,
+            timer: 0
+        };
+        
+        const app = document.getElementById('app-container');
+        app.style.transform = 'none';
+        app.style.opacity = 1;
+        
+        const canvasWrap = document.getElementById('canvas-container');
+        canvasWrap.style.transform = 'scale(1)';
+
+        const flash = document.getElementById('white-flash');
+        flash.style.opacity = 0;
+        flash.classList.add('hidden');
+
+        document.getElementById('win-title').style.opacity = 0;
+        document.getElementById('btn-replay').style.opacity = 0;
+        document.getElementById('btn-replay').style.pointerEvents = 'none';
+        
+        btnMute.classList.remove('hidden');
+
         // Spawn Player (try hardcoded central road area first, fallback to getWalkableSpot)
         let startX = state.mapWidth * 0.42;
         let startY = state.mapHeight * 0.53;
@@ -1197,10 +1315,46 @@
         state.player.y = startY;
         state.player.direction = 'down';
 
-        // Spawn Tabs
+        // Spawn Tabs with improved distribution
         state.entities.tabs = [];
-        for (let i = 0; i < CONFIG.totalTabsToSpawn; i++) {
-            state.entities.tabs.push(getWalkableSpot(100));
+        let attempts = 0;
+        const maxAttempts = 3000;
+
+        while (state.entities.tabs.length < CONFIG.totalTabsToSpawn && attempts < maxAttempts) {
+            let rx = 50 + Math.random() * (state.mapWidth - 100);
+            let ry = 50 + Math.random() * (state.mapHeight - 100);
+
+            // Must be walkable
+            if (!isWalkableRect(rx, ry, 0, 0)) {
+                attempts++;
+                continue;
+            }
+
+            // Enforce distance from other tabs to prevent clumping
+            let tooClose = false;
+            for (let t of state.entities.tabs) {
+                if (Math.hypot(t.x - rx, t.y - ry) < CONFIG.minTabDistance) {
+                    tooClose = true;
+                    break;
+                }
+            }
+
+            // Also keep tabs slightly away from the player's spawn point
+            if (!tooClose && Math.hypot(state.player.x - rx, state.player.y - ry) < 150) {
+                tooClose = true;
+            }
+
+            if (!tooClose) {
+                state.entities.tabs.push({ x: rx, y: ry });
+            }
+
+            attempts++;
+        }
+
+        // Fallback: If we couldn't place them all due to map density, place the rest randomly
+        while (state.entities.tabs.length < CONFIG.totalTabsToSpawn) {
+            const fallbackSpot = getWalkableSpot(100);
+            state.entities.tabs.push({ x: fallbackSpot.x, y: fallbackSpot.y });
         }
 
         // Spawn Doctor NPC
@@ -1228,6 +1382,15 @@
                 state.entities.tabs.splice(i, 1);
                 state.tabsCollected++;
                 state.behavior.lastTabTime = Date.now(); 
+
+                updateTripState();
+
+                state.tripDistortion.active = true;
+                state.tripDistortion.timer = 25;
+                state.tripDistortion.maxTime = 25;
+                state.tripDistortion.targetAngle = (Math.random() - 0.5) * 8;
+                state.tripDistortion.targetBlur = 1.2 + Math.random() * 1.5;
+
                 triggerStoryBeat();
                 if(state.tabsCollected === CONFIG.targetTabs) spawnRaveTile();
             }
@@ -1251,20 +1414,17 @@
 
         // Rave
         if (state.entities.rave && Math.hypot(px - state.entities.rave.x, py - state.entities.rave.y) < CONFIG.playerDrawSize) {
-            winGame();
+            state.isRunning = false;
+            state.isEnteringRave = true;
+            state.raveEnterTimer = 0;
+            state.raveZoomTimer = 0;
         }
     }
 
     function winGame() {
-        state.isRunning = false;
-        document.getElementById('win-screen').classList.remove('hidden');
-        setTimeout(() => {
-            addMessage('player', state.currentStory.ending.player);
-            setTimeout(() => {
-                addMessage('smumsky', state.currentStory.ending.smumsky);
-                msgContainer.scrollTop = msgContainer.scrollHeight;
-            }, 1000);
-        }, 500);
+        state.isEnding = true;
+        state.endingTimer = 0;
+        state.endingPhase = "message";
     }
 
     function updateMovement() {
@@ -1314,7 +1474,7 @@
         const rect = canvasContainer.getBoundingClientRect();
         canvas.width = rect.width;
         canvas.height = rect.height;
-        state.zoom = 1; // Fixed 1:1 scale rendering
+        state.zoom = 1.05; // 5% scale boost
     }
 
     function render() {
@@ -1325,8 +1485,8 @@
 
         // Base Camera Transform
         ctx.save();
-        state.camera.x = Math.floor(canvas.width / 2) - state.player.x;
-        state.camera.y = Math.floor(canvas.height / 2) - state.player.y;
+        state.camera.x = Math.floor(canvas.width / 2) - state.player.x * state.zoom;
+        state.camera.y = Math.floor(canvas.height / 2) - state.player.y * state.zoom;
         
         ctx.translate(state.camera.x, state.camera.y);
         ctx.scale(state.zoom, state.zoom);
@@ -1404,7 +1564,17 @@
         if (state.entities.rave) {
             const rx = state.entities.rave.x;
             const ry = state.entities.rave.y;
-            ctx.fillStyle = `hsl(${(Date.now() / 5) % 360}, 100%, 60%)`;
+            
+            const raveColors = [
+                "#1B00FF", // neon blue
+                "#5A00FF", // deep purple
+                "#9D00FF", // magenta-purple
+                "#FF00FF"  // magenta
+            ];
+
+            const colorIndex = Math.floor(Date.now() / 200) % raveColors.length;
+            ctx.fillStyle = raveColors[colorIndex];
+            
             ctx.shadowBlur = 20 + Math.sin(state.audio.beatPhase * Math.PI) * 10;
             ctx.shadowColor = ctx.fillStyle;
             const rs = CONFIG.playerDrawSize;
@@ -1436,6 +1606,7 @@
         if (!pSpr) pSpr = assets.playerImg;
 
         ctx.save();
+
         ctx.translate(state.player.x + gx, state.player.y + pyOffset + gy);
         
         if (state.player.direction === 'left') {
@@ -1449,40 +1620,38 @@
         if (pSpr) {
             if (isGlitching && state.playerGlitch.rgbSplit) {
                 ctx.globalAlpha = 0.6;
-                ctx.drawImage(pSpr, -pSize/2 - 10, -pSize/2, pSize, pSize);
-                ctx.drawImage(pSpr, -pSize/2 + 10, -pSize/2, pSize, pSize);
+                ctx.drawImage(pSpr, -pSize/2 - 4, -pSize/2, pSize, pSize);
+                ctx.drawImage(pSpr, -pSize/2 + 4, -pSize/2, pSize, pSize);
                 ctx.globalAlpha = 1.0;
             }
             ctx.drawImage(pSpr, -pSize/2, -pSize/2, pSize, pSize);
             
             // Hit feedback overlay (Silhouette tint)
             if (state.playerHit && state.playerHit.active && Math.floor(state.playerHit.timer / 4) % 2 === 0) {
-                // Use a temporary canvas to apply source-atop safely to the sprite
-                // (Doing this on the main canvas would tint the opaque map background)
                 const tmpCanvas = document.createElement('canvas');
                 tmpCanvas.width = pSize;
                 tmpCanvas.height = pSize;
                 const tCtx = tmpCanvas.getContext('2d');
                 
-                // Draw sprite again for tint pass
                 tCtx.drawImage(pSpr, 0, 0, pSize, pSize);
-                
-                // Only apply color where the sprite exists
                 tCtx.globalCompositeOperation = "source-atop";
-                
-                // Red tint
                 tCtx.fillStyle = "rgba(255, 0, 0, 0.7)";
                 tCtx.fillRect(0, 0, pSize, pSize);
                 
                 ctx.save();
-                ctx.shadowBlur = 0; // Prevent shadow duplicating on overlay
+                ctx.shadowBlur = 0;
                 ctx.shadowOffsetY = 0;
-                ctx.globalCompositeOperation = "lighter"; // Punchier effect as requested
+                ctx.globalCompositeOperation = "lighter";
                 ctx.drawImage(tmpCanvas, -pSize/2, -pSize/2, pSize, pSize);
                 ctx.restore();
             }
+
+            if (state.tripLevel > 2) {
+                ctx.globalAlpha = 0.15;
+                ctx.drawImage(pSpr, -pSize/2 - 8, -pSize/2, pSize, pSize);
+                ctx.globalAlpha = 1.0;
+            }
         } else {
-            // Fallback generic box
             ctx.fillStyle = '#fff';
             ctx.fillRect(-16, -16, 32, 32);
         }
@@ -1498,7 +1667,6 @@
     function gameLoop() {
         if (state.isRunning) {
             updateMovement();
-            updateBeatSync();
             
             if (state.playerHit && state.playerHit.active) {
                 state.playerHit.timer--;
@@ -1507,22 +1675,140 @@
                 }
             }
         }
-        
-        const level = Math.min(state.tabsCollected, CONFIG.tripStates.length - 1);
-        state.tripLevel = level;
 
-        if (state.isRunning && state.tripLevel > 2) {
-            const intensity = state.tripLevel / (CONFIG.tripStates.length - 1);
+        if (state.isEnteringRave) {
+            state.raveEnterTimer++;
+
+            const rave = state.entities.rave;
+            const dx = rave.x - state.player.x;
+            const dy = rave.y - state.player.y;
+
+            // smooth pull into rave
+            state.player.x += dx * 0.08;
+            state.player.y += dy * 0.08;
+
+            // subtle visual feedback
+            const pulse = Math.sin(state.raveEnterTimer * 0.3);
+            canvas.style.setProperty('--beat-scale', 1 + pulse * 0.08);
+            canvas.style.setProperty('--trip-blur', `${Math.abs(pulse) * 3}px`);
+
+            if (state.raveEnterTimer >= 60) {
+                state.isEnteringRave = false;
+                winGame();
+            }
+        }
+
+        if (state.isRunning || state.isEnding || state.isEnteringRave) {
+            updateBeatSync();
+        }
+
+        if (state.entryFlash.active) {
+            const flash = document.getElementById('white-flash');
+            flash.classList.remove('hidden');
+
+            const alpha = state.entryFlash.timer / 18;
+            flash.style.opacity = alpha;
+
+            state.entryFlash.timer--;
+
+            if (state.entryFlash.timer <= 0) {
+                state.entryFlash.active = false;
+                flash.style.opacity = 0;
+                flash.classList.add('hidden');
+            }
+        }
+
+        if (state.isEnding) {
+            state.endingTimer++;
             
+            // PHASE 1 — FINAL TEXT FIRST
+            if (state.endingPhase === "message") {
+                if (state.endingTimer === 1) {
+                    addMessage('player', state.currentStory.ending.player);
+                }
+
+                if (state.endingTimer > 60) {
+                    state.endingPhase = "holdText";
+                    state.endingTimer = 0;
+                }
+            }
+
+            // PHASE 2 — LET TEXT BREATHE
+            else if (state.endingPhase === "holdText") {
+                if (state.endingTimer > 45) {
+                    state.endingPhase = "canvasPush";
+                    state.endingTimer = 0;
+                }
+            }
+
+            // PHASE 3 — CANVAS ONLY PUSH-IN
+            else if (state.endingPhase === "canvasPush") {
+                const t = Math.min(1, state.endingTimer / 60);
+                const eased = t * t * t;
+
+                const canvasWrap = document.getElementById('canvas-container');
+                canvasWrap.style.transform = `scale(${1 + eased * 0.35})`;
+
+                if (state.endingTimer >= 60) {
+                    state.entryFlash.active = true;
+                    state.entryFlash.timer = 18;
+
+                    state.endingPhase = "flash";
+                    state.endingTimer = 0;
+                }
+            }
+
+            // PHASE 4 — WHITE / BLUE FLASH
+            else if (state.endingPhase === "flash") {
+                if (state.endingTimer > 18) {
+                    state.endingPhase = "fullscreen";
+                    state.endingTimer = 0;
+                }
+            }
+
+            // PHASE 5 — FULLSCREEN GIF
+            else if (state.endingPhase === "fullscreen") {
+                if (state.endingTimer === 1) {
+                    // hide game instantly
+                    document.getElementById('app-container').style.opacity = 0;
+
+                    const winScreen = document.getElementById('win-screen');
+                    const winGif = document.getElementById('win-gif');
+
+                    winGif.src = assets.dizzyDance ? assets.dizzyDance.src : 'DIZZY_DANCE.gif';
+                    winScreen.classList.remove('hidden');
+                }
+
+                // text fade in
+                if (state.endingTimer === 60) {
+                    document.getElementById('win-title').style.opacity = 1;
+                }
+
+                // button fade in
+                if (state.endingTimer === 120) {
+                    const btn = document.getElementById('btn-replay');
+                    btn.style.opacity = 1;
+                    btn.style.pointerEvents = 'auto';
+                }
+            }
+        }
+
+        let intensity = state.tripLevel / (CONFIG.tripStates.length - 1);
+
+        if (state.isEnding) {
+            intensity *= 0.6; // keep effect alive but controlled
+        }
+
+        if ((state.isRunning || state.isEnding || state.isEnteringRave) && state.tripLevel > 2) {
             if (!state.tripDistortion.active && state.audio.isNewBeat) {
                 let triggered = false;
                 let accentMultiplier = 1;
 
-                if (state.audio.currentBeatCount % 4 === 0 && Math.random() < (0.4 * intensity)) {
+                if (state.audio.currentBeatCount % 4 === 0 && Math.random() < (0.6 * intensity)) {
                     triggered = true;
                     accentMultiplier = 1.5; 
                 } 
-                else if (state.audio.currentBeatCount % 2 === 0 && Math.random() < (0.25 * intensity)) {
+                else if (state.audio.currentBeatCount % 2 === 0 && Math.random() < (0.4 * intensity)) {
                     triggered = true;
                 }
 
@@ -1531,8 +1817,8 @@
                     state.tripDistortion.maxTime = Math.floor(30 + Math.random() * 20);
                     state.tripDistortion.timer = state.tripDistortion.maxTime;
                     
-                    state.tripDistortion.targetAngle = (Math.random() - 0.5) * 10 * intensity * accentMultiplier;
-                    state.tripDistortion.targetBlur = (1.5 + Math.random() * 1.5) * intensity * accentMultiplier;
+                    state.tripDistortion.targetAngle = (Math.random() - 0.5) * 5 * intensity * accentMultiplier;
+                    state.tripDistortion.targetBlur = (0.8 + Math.random() * 0.8) * intensity * accentMultiplier;
                 }
             }
 
@@ -1559,16 +1845,14 @@
         canvas.style.setProperty('--trip-rotate', `${state.tripDistortion.currentAngle}deg`);
         canvas.style.setProperty('--trip-blur', `${state.tripDistortion.currentBlur}px`);
 
-        if (state.isRunning && state.tripLevel > 0) {
-            const intensity = state.tripLevel / (CONFIG.tripStates.length - 1);
-            
+        if ((state.isRunning || state.isEnding || state.isEnteringRave) && state.tripLevel > 0) {
             if (!state.playerGlitch.active && state.audio.isNewHalfBeat) {
-                const chance = state.audio.isNewBeat ? 0.35 : 0.15;
+                const chance = state.audio.isNewBeat ? 0.18 : 0.06;
                 if (Math.random() < (chance * intensity)) {
                     state.playerGlitch.active = true;
-                    state.playerGlitch.timer = Math.floor(4 + Math.random() * 5); 
-                    state.playerGlitch.offsetX = (Math.random() - 0.5) * 24 * intensity;
-                    state.playerGlitch.offsetY = (Math.random() - 0.5) * 12 * intensity;
+                    state.playerGlitch.timer = Math.floor(2 + Math.random() * 3); 
+                    state.playerGlitch.offsetX = (Math.random() - 0.5) * 10 * intensity;
+                    state.playerGlitch.offsetY = (Math.random() - 0.5) * 4 * intensity;
                     state.playerGlitch.rgbSplit = Math.random() > 0.3;
                 }
             }
@@ -1629,8 +1913,7 @@
             }
         }
 
-        if (state.isRunning && state.tripLevel > 2) {
-            const intensity = state.tripLevel / (CONFIG.tripStates.length - 1);
+        if ((state.isRunning || state.isEnding || state.isEnteringRave) && state.tripLevel > 2) {
             if (!state.uiGlitch.batteryActive && Math.random() < (0.001 * intensity)) {
                 state.uiGlitch.batteryActive = true;
                 const batEl = document.getElementById('battery-text');
@@ -1666,7 +1949,7 @@
 
         // Micro-polish: subtle flicker on intro text at higher trip levels
         const introOverlay = document.getElementById('intro-overlay');
-        if (state.isRunning && !introOverlay.classList.contains('hidden') && state.tripLevel > 2) {
+        if ((state.isRunning || state.isEnding || state.isEnteringRave) && !introOverlay.classList.contains('hidden') && state.tripLevel > 2) {
             const introText = document.getElementById('intro-text');
             if (introText) introText.style.opacity = 0.85 + Math.random() * 0.15;
         }
@@ -1704,19 +1987,17 @@
         app.style.opacity = 1;
         app.style.pointerEvents = 'auto';
 
-        // SHOW INTRO OVERLAY
         const intro = document.getElementById('intro-overlay');
         intro.classList.remove('hidden');
 
-        // FADE OUT AFTER DELAY
+        btnMute.classList.remove('hidden');
+
         setTimeout(() => {
             intro.style.opacity = 0;
-
             setTimeout(() => {
                 intro.classList.add('hidden');
-                intro.style.opacity = 1; // reset for next run
+                intro.style.opacity = 1;
             }, 500);
-
         }, 2500);
         
         resetGame();
@@ -1733,20 +2014,15 @@
             if (state.audio.element) {
                 state.audio.element.muted = state.audio.isMuted;
             }
-            document.getElementById('btn-mute').innerText = state.audio.isMuted ? '🔇 OFF' : '🔊 ON';
+            document.getElementById('btn-mute').innerText = state.audio.isMuted ? "SOUND OFF" : "SOUND ON";
         });
         document.getElementById('btn-mute').dataset.bound = "true";
     }
 
-    // Boot sequence
-    document.getElementById('btn-mute').classList.remove('hidden'); // Guarantee mute is usable before start
     await loadAssets();
     
     if (assets.homescreenImg) {
-        console.log("Homescreen loaded:", assets.homescreenImg.src);
         document.getElementById('start-screen').style.backgroundImage = `url('${assets.homescreenImg.src}')`;
-    } else {
-        console.warn("Homescreen image failed to load. Check filename and GitHub path.");
     }
 
     if (assets.startBtnImg) {
