@@ -186,60 +186,129 @@
             border-width: 1px;
         }
 
-        /* Trip Status Box UI */
+        /* Trip Status Box UI (Nokia LCD Style) */
         #trip-status-box {
             position: absolute;
-            top: 20px;
-            left: 20px; 
+            top: 16px;
+            left: 16px;
             z-index: 20;
-            padding: 0.5rem 1.2rem;
-            background: rgba(12, 12, 14, 0.85);
-            border: 1px solid var(--maze-dark);
-            border-radius: 8px;
-            text-align: center;
-            min-width: 140px;
-            backdrop-filter: blur(4px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            padding: 6px 10px;
+            background: #9fb7ff; /* LCD blue */
+            color: #050816;
+            border-left: 3px solid #5366a8;
+            border-right: 3px solid #1d2448;
+            border-top: 2px solid #5366a8;
+            border-bottom: 2px solid #1d2448;
+            font-family: 'JetBrains Mono', monospace;
+            min-width: 120px;
+            image-rendering: pixelated;
             pointer-events: none;
+        }
+        
+        #trip-status-box::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(5, 8, 22, 0.08) 0px,
+                    rgba(5, 8, 22, 0.08) 1px,
+                    transparent 1px,
+                    transparent 4px
+                );
+            opacity: 0.4;
         }
 
         .status-label {
-            font-size: 0.6rem;
-            color: #888;
+            font-size: 0.55rem;
+            color: #050816;
+            opacity: 0.7;
+            letter-spacing: 1px;
             margin-bottom: 2px;
-            letter-spacing: 1.5px;
         }
 
         #trip-state {
             font-size: 0.75rem;
-            color: var(--trip-color);
+            color: #050816;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            font-weight: 700;
         }
 
-        /* Phone UI Panel */
+        /* Retro Phone UI Panel */
         #phone-ui {
             width: 360px;
             min-width: 360px;
-            background-color: var(--ui-bg);
-            border-left: 1px solid var(--maze-dark);
+            background: #08080c;
+            border-left: 3px solid #050508;
             display: flex;
             flex-direction: column;
             z-index: 5;
             position: relative;
+            font-family: 'JetBrains Mono', monospace;
+            color: #050816;
+            padding: 14px;
+            box-shadow: inset 0 0 40px rgba(27, 0, 255, 0.16);
         }
 
-        /* Native Phone Chrome (Top Row) */
+        /* Common Nokia LCD block styles */
+        #phone-chrome,
+        #phone-header,
+        #messages-container,
+        #phone-softkeys {
+            background: #9fb7ff;
+            color: #050816;
+            border-left: 3px solid #5366a8;
+            border-right: 3px solid #1d2448;
+        }
+
+        /* LCD Texture overlay */
+        #phone-ui::after {
+            content: "";
+            position: absolute;
+            inset: 14px;
+            pointer-events: none;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(5, 8, 22, 0.10) 0px,
+                    rgba(5, 8, 22, 0.10) 1px,
+                    transparent 1px,
+                    transparent 4px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    rgba(5, 8, 22, 0.05) 0px,
+                    rgba(5, 8, 22, 0.05) 1px,
+                    transparent 1px,
+                    transparent 4px
+                );
+            opacity: 0.55;
+            mix-blend-mode: multiply;
+            z-index: 20;
+        }
+
+        /* Retro Phone Chrome */
         #phone-chrome {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.4rem 0.8rem;
-            background-color: var(--ui-panel);
-            font-size: 0.65rem;
-            color: #777;
-            border-bottom: 1px solid #111;
-            letter-spacing: 0.5px;
+            border-top: 3px solid #5366a8;
+            border-bottom: none;
+            padding: 0.45rem 0.55rem 0.2rem;
+            font-size: 0.62rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            box-shadow: none;
+        }
+
+        .phone-chrome-item,
+        #now-playing-text,
+        #battery-text {
+            color: #050816;
+            font-weight: 700;
         }
 
         .phone-chrome-item {
@@ -256,58 +325,134 @@
             transition: all 0.1s;
         }
 
-        /* UI Micro Glitch Class */
+        /* LCD Glitch Class */
         .glitch-ui {
-            transform: translateX(1.5px) translateY(-0.5px);
-            opacity: 0.8;
-            filter: contrast(1.2) drop-shadow(1px 0 0 rgba(255, 0, 100, 0.4)) drop-shadow(-1px 0 0 rgba(0, 255, 255, 0.4));
+            transform: translateX(1px);
+            opacity: 0.85;
+            filter: contrast(1.5);
         }
 
         #phone-header {
-            padding: 0.8rem 1rem 1rem 1rem;
-            background-color: var(--ui-panel);
-            border-bottom: 1px solid #222;
+            border-top: none;
+            border-bottom: 2px solid #1d2448;
+            padding: 0.25rem 0.55rem 0.45rem;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            align-items: flex-start;
+            box-shadow: none;
             z-index: 2;
         }
 
         #contact-name {
-            font-size: 1.5rem;
-            color: #fff;
-            margin-bottom: 0.2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.76rem;
+            color: #050816;
+            margin: 0;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            font-weight: 700;
         }
 
         #messages-container {
             flex-grow: 1;
-            padding: 1rem;
+            border-top: none;
+            border-bottom: 3px solid #1d2448;
+            padding: 0.65rem 0.55rem;
+            gap: 0.35rem;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
             scroll-behavior: smooth;
         }
 
-        #messages-container::-webkit-scrollbar { width: 6px; }
+        #messages-container::-webkit-scrollbar { width: 4px; }
         #messages-container::-webkit-scrollbar-track { background: transparent; }
-        #messages-container::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        #messages-container::-webkit-scrollbar-thumb { background: #263326; border-radius: 0; }
 
+        /* Rigid SMS Log Messages */
         .msg {
-            max-width: 85%;
-            padding: 0.75rem 1rem;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            line-height: 1.4;
+            max-width: 100%;
+            padding: 0.15rem 0;
+            border-radius: 0;
+            font-size: 0.78rem;
+            line-height: 1.25;
             word-wrap: break-word;
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: popIn 0.12s steps(2, end);
             position: relative;
+            background: none !important;
+            box-shadow: none !important;
+            color: #050816;
+            font-weight: 700;
+        }
+
+        .msg.smumsky,
+        .msg.dee,
+        .msg.gaz {
+            align-self: stretch;
+            color: #050816;
+        }
+
+        .msg.player {
+            align-self: stretch;
+            color: #18204a;
+            text-align: left;
+        }
+
+        .msg.smumsky::before {
+            content: "S:";
+            display: inline;
+            margin-right: 0.35rem;
+            color: #0A0094;
+            font-weight: 700;
+            font-size: inherit;
+        }
+
+        .msg.player::before {
+            content: "D:";
+            display: inline;
+            margin-right: 0.35rem;
+            color: #0A0094;
+            font-weight: 700;
+            font-size: inherit;
+        }
+
+        .msg.dee::before {
+            content: "DEE:";
+            display: inline;
+            margin-right: 0.35rem;
+            color: #0A0094;
+            font-weight: 700;
+            font-size: inherit;
+        }
+
+        .msg.gaz::before {
+            content: "GAZ:";
+            display: inline;
+            margin-right: 0.35rem;
+            color: #0A0094;
+            font-weight: 700;
+            font-size: inherit;
+        }
+
+        #phone-softkeys {
+            border-bottom: 3px solid #1d2448;
+            padding: 0.35rem 0.55rem;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
         }
 
         @keyframes popIn {
-            0% { opacity: 0; transform: translateY(10px) scale(0.95); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
+            0% {
+                opacity: 0;
+                transform: translateY(2px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         #intro-overlay {
@@ -338,74 +483,90 @@
             }
         }
 
-        .msg.smumsky {
-            align-self: flex-start;
-            background-color: var(--msg-smumsky);
-            color: #fff;
-            border-bottom-left-radius: 2px;
-            box-shadow: 0 2px 10px rgba(27, 0, 255, 0.2);
+        /* Win Screen Styles */
+        #win-screen {
+            background: rgba(12, 12, 14, 0.88);
+            backdrop-filter: blur(4px);
         }
 
-        .msg.smumsky::before {
-            content: "Smumsky";
-            display: block;
-            font-size: 0.55rem;
-            opacity: 0.65;
-            margin-bottom: 4px;
-            color: #fff;
-            letter-spacing: 0.5px;
+        #win-card {
+            background: #9fb7ff;
+            color: #050816;
+            border-left: 4px solid #5366a8;
+            border-right: 4px solid #1d2448;
+            border-top: 4px solid #5366a8;
+            border-bottom: 4px solid #1d2448;
+            padding: 1.4rem 1.8rem;
+            min-width: 320px;
+            max-width: 460px;
+            font-family: 'JetBrains Mono', monospace;
+            text-align: center;
+            image-rendering: pixelated;
+            position: relative;
         }
 
-        .msg.dee {
-            align-self: flex-start;
-            background-color: var(--msg-dee);
-            color: #fff;
-            border-bottom-left-radius: 2px;
-            box-shadow: 0 2px 10px rgba(157, 0, 255, 0.2);
-        }
-        .msg.dee::before {
-            content: "Dee";
-            display: block;
-            font-size: 0.55rem;
-            opacity: 0.65;
-            margin-bottom: 4px;
-            color: #fff;
-            letter-spacing: 0.5px;
-        }
-
-        .msg.gaz {
-            align-self: flex-start;
-            background-color: var(--msg-gaz);
-            color: #fff;
-            border-bottom-left-radius: 2px;
-            box-shadow: 0 2px 10px rgba(0, 166, 255, 0.2);
-        }
-        .msg.gaz::before {
-            content: "Gaz";
-            display: block;
-            font-size: 0.55rem;
-            opacity: 0.65;
-            margin-bottom: 4px;
-            color: #fff;
-            letter-spacing: 0.5px;
+        #win-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(5, 8, 22, 0.10) 0px,
+                    rgba(5, 8, 22, 0.10) 1px,
+                    transparent 1px,
+                    transparent 4px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    rgba(5, 8, 22, 0.05) 0px,
+                    rgba(5, 8, 22, 0.05) 1px,
+                    transparent 1px,
+                    transparent 4px
+                );
+            opacity: 0.45;
+            mix-blend-mode: multiply;
         }
 
-        .msg.player {
-            align-self: flex-end;
-            background-color: var(--msg-player);
-            color: #eee;
-            border-bottom-right-radius: 2px;
+        #win-status {
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            font-weight: 700;
+            margin-bottom: 0.9rem;
+            opacity: 0.75;
+            text-transform: uppercase;
         }
 
-        .msg.player::before {
-            content: "Dizzy";
-            display: block;
-            font-size: 0.55rem;
-            opacity: 0.5;
-            margin-bottom: 4px;
-            text-align: right;
-            color: #eee;
-            letter-spacing: 0.5px;
+        #win-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            line-height: 1.25;
+            letter-spacing: 0.04em;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        #btn-replay {
+            background: #050816;
+            color: #9fb7ff;
+            border: 2px solid #050816;
+            box-shadow: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 0.45rem 1rem;
+            letter-spacing: 0.06em;
+            position: relative;
+            z-index: 2; /* Important so it stays above the LCD scanlines! */
+        }
+
+        #btn-replay:hover {
+            background: #1B00FF;
+            color: #ffffff;
+            border-color: #1B00FF;
+            box-shadow: none;
         }
 
         @media (max-width: 800px) {
@@ -417,7 +578,7 @@
                 min-width: 100%;
                 height: 35vh;
                 border-left: none;
-                border-top: 1px solid var(--maze-dark);
+                border-top: 3px solid #050805;
             }
         }
     </style>
@@ -440,8 +601,11 @@
 </div>
 
 <div id="win-screen" class="overlay hidden">
-    <h1 style="font-size: 3rem; text-align: center;">ain't nothin' wrong<br>with that!</h1>
-    <button id="btn-replay" style="margin-top: 2rem;">Go again</button>
+    <div id="win-card">
+        <div id="win-status">MESSAGE RECEIVED</div>
+        <div id="win-title">AIN'T NOTHIN'<br>WRONG WITH THAT!</div>
+        <button id="btn-replay">GO AGAIN</button>
+    </div>
 </div>
 
 <!-- Main App Container -->
@@ -449,27 +613,28 @@
     <div id="game-section">
         <div id="canvas-container">
             <canvas id="game"></canvas>
-            <div id="trip-status-box">
-                <div class="status-label">TRIP STATUS</div>
-                <div id="trip-state">Sound</div>
-            </div>
         </div>
     </div>
 
+    <!-- Retro Phone UI -->
     <div id="phone-ui">
         <div id="phone-chrome">
             <div class="phone-chrome-item now-playing" id="now-playing-container">
-                <span>▶</span> <span id="now-playing-text">Nothing Wrong - Take Your Medicine</span>
+                <span id="now-playing-text">SIGNAL ███░</span>
             </div>
             <div class="phone-chrome-item">
-                <span id="battery-text">84%</span> <span style="font-size: 0.8rem; line-height: 1;">🔋</span>
+                BAT <span id="battery-text">84%</span>
             </div>
         </div>
 
         <div id="phone-header">
-            <div id="contact-name" class="koulen">Smumsky</div>
+            <div id="contact-name">SMS: SMUMSKY</div>
         </div>
         <div id="messages-container"></div>
+        <div id="phone-softkeys">
+            <span>Options</span>
+            <span>Clear</span>
+        </div>
     </div>
 </div>
 
@@ -568,7 +733,6 @@
     const startScreen = document.getElementById('start-screen');
     const winScreen = document.getElementById('win-screen');
     const msgContainer = document.getElementById('messages-container');
-    const tripStateEl = document.getElementById('trip-state');
     const btnMute = document.getElementById('btn-mute');
 
     const assets = {
@@ -953,15 +1117,6 @@
         });
     }
 
-    function updateTripState() {
-        const level = Math.min(state.tabsCollected, CONFIG.tripStates.length - 1);
-        state.tripLevel = level;
-        const config = CONFIG.tripStates[level];
-        tripStateEl.innerText = config.text;
-        tripStateEl.style.color = config.color;
-        document.documentElement.style.setProperty('--trip-color', config.color);
-    }
-
     // ==========================================
     // 6. MAP & COLLISION SYSTEMS
     // ==========================================
@@ -1022,7 +1177,6 @@
         state.tabsCollected = 0;
         state.tripLevel = 0;
         state.encountersUsed = []; 
-        updateTripState();
         
         state.behavior.lastTabTime = Date.now();
         state.behavior.lastMessageTime = Date.now();
@@ -1074,7 +1228,6 @@
                 state.entities.tabs.splice(i, 1);
                 state.tabsCollected++;
                 state.behavior.lastTabTime = Date.now(); 
-                updateTripState();
                 triggerStoryBeat();
                 if(state.tabsCollected === CONFIG.targetTabs) spawnRaveTile();
             }
@@ -1104,7 +1257,7 @@
 
     function winGame() {
         state.isRunning = false;
-        winScreen.classList.remove('hidden');
+        document.getElementById('win-screen').classList.remove('hidden');
         setTimeout(() => {
             addMessage('player', state.currentStory.ending.player);
             setTimeout(() => {
@@ -1355,15 +1508,8 @@
             }
         }
         
-        if (state.tripLevel > 0) {
-            const speed = Math.pow(state.tripLevel, 1.5) * 0.02;
-            const hue = (Date.now() * speed) % 360;
-            tripStateEl.style.color = `hsl(${hue}, 100%, 65%)`;
-            tripStateEl.style.textShadow = `0 0 10px hsla(${hue}, 100%, 65%, 0.5)`;
-        } else {
-            tripStateEl.style.color = CONFIG.tripStates[0].color;
-            tripStateEl.style.textShadow = 'none';
-        }
+        const level = Math.min(state.tabsCollected, CONFIG.tripStates.length - 1);
+        state.tripLevel = level;
 
         if (state.isRunning && state.tripLevel > 2) {
             const intensity = state.tripLevel / (CONFIG.tripStates.length - 1);
